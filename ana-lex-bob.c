@@ -16,8 +16,31 @@ typedef enum {
   ERRO,
   OPR_VOID,
   OPR_SEMIC,
+  OPR_IF,
+  OPR_ELSE,
+  OPR_PRINT,
+  OPR_TRUE,
+  OPR_FALSE,
+  OPR_DO,
+  OPR_WHILE,
+  OPR_PROC,
   OPR_INT,
-  OPR_IF
+  OPR_BOOL,
+  IDENTIFICADOR,
+  OPR_ADD,
+  OPR_SUB,
+  OPR_TIMES,
+  OPR_DIV,
+  OPR_LESS_THEN,
+  OPR_LESS_OR_EQUAL_THEN,
+  OPR_HIGHER_THEN,
+  OPR_HIGHER_OR_EQUAL_THEN,
+  OPR_EQUAL_TO,
+  OPR_DIFERENT,
+  OPR_EQUAL,
+  OPR_VIRGULA,
+  OPR_PONTO_E_VIRGULA,
+  OPR_COMENT
 } TOKEN_TYPE;
 
 typedef struct
@@ -96,22 +119,50 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         buffer++;
         goto q17;
       }
+      if (*buffer == 'b') {
+        linha++;
+        buffer++;
+        goto q18;
+      }
+      if (*buffer == 'd') {
+        linha++;
+        buffer++;
+        goto q19;
+      }
+      if (*buffer == 't') {
+        linha++;
+        buffer++;
+        goto q37;
+      }
     q16:
       if (*buffer == 'e') {
         linha++;
         buffer++;
         goto q26;
       }
-    q17:
+    q17: // if
       if (*buffer == 'n') {
         linha++;
         buffer++;
         goto q30;
       }
-      if (*buffer == 'f') {
+      if (*buffer == 'f' && *buffer + 1 == ' ') {
         linha++;
         buffer++;
         tipo = OPR_IF;
+        goto q65;
+      }
+    q18:
+      if (*buffer == 'o') {
+        linha++;
+        buffer++;
+        goto q33;
+      }
+    q19: // do
+      if (*buffer == 'o') {
+        linha++;
+        buffer++;
+        tipo = OPR_DO;
         goto q65;
       }
     q26:
@@ -126,29 +177,61 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         buffer++;
         goto q28;
       }
-    q28:
-      if (*buffer == 'c') {
+    q28: // semic
+      if (*buffer == 'c' && *buffer + 1 == ' ') {
         linha++;
         buffer++;
-        tipo = OPR_SEMIC; // semic
+        tipo = OPR_SEMIC;
         goto q65;
       }
-    q30:
-      if (*buffer == 't') {
+    q30: // int
+      if (*buffer == 't' && *buffer + 1 == ' ') {
         linha++;
         buffer++;
         tipo = OPR_INT;
         goto q65;
       }
-    q65:
+    q33:
+      if (*buffer == 'o') {
+        linha++;
+        buffer++;
+        goto q34;
+      }
+    q34: // bool
+      if (*buffer == 'l' && *buffer + 1 == ' ') {
+        linha++;
+        buffer++;
+        tipo = OPR_BOOL;
+        goto q65;
+      }
+    q37:
+      if (*buffer == 'r') {
+        linha++;
+        buffer++;
+        goto q43;
+      }
+    q43:
+      if (*buffer == 'u') {
+        linha++;
+        buffer++;
+        goto q44;
+      }
+    q44: // true
+      if (*buffer == 'e' && *buffer + 1 == ' ') {
+        linha++;
+        buffer++;
+        tipo = OPR_TRUE;
+        goto q65;
+      }
+    q65: // final
       if (*buffer == ' ') {
         linha++;
         buffer++;
         return tipo;
       }
-    erro:
+    erro: // erro
       tipo = ERRO;
-      printf("%s\n", "Deu erro!");
+      // printf("%s\n", "Deu erro!");
       return tipo;
 
   } while (tipo != ERRO);
