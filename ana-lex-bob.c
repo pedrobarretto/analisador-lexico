@@ -15,7 +15,9 @@
 typedef enum {
   ERRO,
   OPR_VOID,
-  OPR_SEMIC
+  OPR_SEMIC,
+  OPR_INT,
+  OPR_IF
 } TOKEN_TYPE;
 
 typedef struct
@@ -38,10 +40,11 @@ typedef struct
 // }
 // printf("%s\n", "passei");
 
-int scanner(char *palavra[], TOKEN_TYPE tipo);
+int scanner(char *palavra, TOKEN_TYPE tipo);
 
 int linha = 0; // Contador de linhas
 char *buffer;
+TOKEN_TYPE tipo;
 
 int main(int argc, char *argv[])
 {
@@ -69,7 +72,7 @@ int main(int argc, char *argv[])
 	int tk;
 	do
 	{
-		tk = scanner(buffer, OPR_VOID);
+		tk = scanner(buffer, tipo);
 		// printf("\nLinha:%3d | %-30s", linha, tk);
     printf("%i\n", tk);
     buffer++;
@@ -78,49 +81,75 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-int scanner(char *palavra[], TOKEN_TYPE tipo) {
+int scanner(char *palavra, TOKEN_TYPE tipo) {
   char c;
-  printf("%s\n", "dentro");
+  // printf("%s\n", "dentro");
   LOOP:do {
     q0:
-      c = palavra[linha];
-      if (c == 's') {
+      if (*buffer == 's') {
         linha++;
+        buffer++;
         goto q16;
       }
-      return _ACEITA_;
-    q16:
-      c = palavra[linha];
-      if (c == 'e') {
+      if (*buffer == 'i') {
         linha++;
+        buffer++;
+        goto q17;
+      }
+    q16:
+      if (*buffer == 'e') {
+        linha++;
+        buffer++;
         goto q26;
       }
-    q26:
-      c = palavra[linha];
-      if (c == 'm') {
+    q17:
+      if (*buffer == 'n') {
         linha++;
+        buffer++;
+        goto q30;
+      }
+      if (*buffer == 'f') {
+        linha++;
+        buffer++;
+        tipo = OPR_IF;
+        goto q65;
+      }
+    q26:
+      if (*buffer == 'm') {
+        linha++;
+        buffer++;
         goto q27;
       }
     q27:
-      c = palavra[linha];
-      if (c == 'i') {
+      if (*buffer == 'i') {
         linha++;
+        buffer++;
         goto q28;
       }
     q28:
-      c = palavra[linha];
-      if (c == 'c') {
+      if (*buffer == 'c') {
         linha++;
+        buffer++;
+        tipo = OPR_SEMIC; // semic
+        goto q65;
+      }
+    q30:
+      if (*buffer == 't') {
+        linha++;
+        buffer++;
+        tipo = OPR_INT;
         goto q65;
       }
     q65:
-      c = palavra[linha];
-      if (c == ' ') {
+      if (*buffer == ' ') {
         linha++;
-        return OPR_SEMIC; // semic
+        buffer++;
+        return tipo;
       }
     erro:
-      return _REJEITA_;
+      tipo = ERRO;
+      printf("%s\n", "Deu erro!");
+      return tipo;
 
   } while (tipo != ERRO);
   
