@@ -14,7 +14,8 @@
 
 typedef enum {
   ERRO,
-  OPR_VOID
+  OPR_VOID,
+  OPR_SEMIC
 } TOKEN_TYPE;
 
 typedef struct
@@ -40,24 +41,84 @@ typedef struct
 int scanner(char *palavra[], TOKEN_TYPE tipo);
 
 int linha = 0; // Contador de linhas
+char *buffer;
 
 int main(int argc, char *argv[])
 {
-  printf("%s\n", "to rodando");
   char *prvoid[4] = {"v", "o", "i", "d"};
-  printf("%s\n", prvoid[0]);
-  scanner(prvoid, OPR_VOID);
 
-  return 0;
+  FILE *arq = fopen(argv[1], "r");
+  if (arq == NULL)
+	{
+		fprintf(stderr, "Erro ao tentar abrir o aquivo \"%s\"", argv[1]);
+		return -1;
+	}
+
+  fseek(arq, 0, SEEK_END);
+	int tam_arq = ftell(arq);
+	fseek(arq, 0, SEEK_SET);
+
+	buffer = (char *)calloc(tam_arq, sizeof(char));
+	if (buffer == NULL)
+		exit(-1);
+	else
+		fread(buffer, sizeof(char), tam_arq, arq);
+
+	fclose(arq);
+
+	int tk;
+	do
+	{
+		tk = scanner(buffer, OPR_VOID);
+		// printf("\nLinha:%3d | %-30s", linha, tk);
+    printf("%i\n", tk);
+    buffer++;
+	} while (tk != ERRO);
+
+	return 0;
 }
 
 int scanner(char *palavra[], TOKEN_TYPE tipo) {
   char c;
-
+  printf("%s\n", "dentro");
   LOOP:do {
     q0:
       c = palavra[linha];
+      if (c == 's') {
+        linha++;
+        goto q16;
+      }
       return _ACEITA_;
+    q16:
+      c = palavra[linha];
+      if (c == 'e') {
+        linha++;
+        goto q26;
+      }
+    q26:
+      c = palavra[linha];
+      if (c == 'm') {
+        linha++;
+        goto q27;
+      }
+    q27:
+      c = palavra[linha];
+      if (c == 'i') {
+        linha++;
+        goto q28;
+      }
+    q28:
+      c = palavra[linha];
+      if (c == 'c') {
+        linha++;
+        goto q65;
+      }
+    q65:
+      c = palavra[linha];
+      if (c == ' ') {
+        linha++;
+        return OPR_SEMIC; // semic
+      }
     erro:
       return _REJEITA_;
 
