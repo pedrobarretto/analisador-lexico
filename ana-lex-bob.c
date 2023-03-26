@@ -175,7 +175,6 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
       }
     q16:
       if (*buffer == 'e') {
-        printf("%s\n", "dentro do e");
         linha++;
         buffer++;
         goto q26;
@@ -186,7 +185,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         buffer++;
         goto q30;
       }
-      if (*buffer == 'f' && *buffer + 1 == ' ') {
+      if (*buffer == 'f') {
         linha++;
         buffer++;
         tipo = OPR_IF;
@@ -207,28 +206,25 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
       }
     q26:
       if (*buffer == 'm') {
-        printf("%s\n", "dentro do m");
         linha++;
         buffer++;
         goto q27;
       }
     q27:
       if (*buffer == 'i') {
-        printf("%s\n", "dentro do i");
         linha++;
         buffer++;
         goto q28;
       }
     q28: // semic
-      if (*buffer == 'c') { // FIXME: Tirei o ' ' do if, e funcionou, mas deu erro depois, talvez por conta do espaço
-        printf("%s\n", "dentro do c");
+      if (*buffer == 'c') {
         linha++;
         buffer++;
         tipo = OPR_SEMIC;
         goto q65;
       }
     q30: // int
-      if (*buffer == 't' && *buffer + 1 == ' ') {
+      if (*buffer == 't') {
         linha++;
         buffer++;
         tipo = OPR_INT;
@@ -241,7 +237,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q34;
       }
     q34: // bool
-      if (*buffer == 'l' && *buffer + 1 == ' ') {
+      if (*buffer == 'l') {
         linha++;
         buffer++;
         tipo = OPR_BOOL;
@@ -290,7 +286,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q44;
       }
     q44: // true
-      if (*buffer == 'e' && *buffer + 1 == ' ') {
+      if (*buffer == 'e') {
         linha++;
         buffer++;
         tipo = OPR_TRUE;
@@ -309,7 +305,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q48;
       }
     q48: // false
-      if (*buffer == 'e' && *buffer + 1 == ' ') {
+      if (*buffer == 'e') {
         linha++;
         buffer++;
         tipo = OPR_FALSE;
@@ -322,7 +318,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q51;
       }
     q51:
-      if (*buffer == 'e' && *buffer + 1 == ' ') {
+      if (*buffer == 'e') {
         linha++;
         buffer++;
         tipo = OPR_ELSE;
@@ -341,7 +337,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q55;
       }
     q55: // while
-      if (*buffer == 'e' && *buffer + 1 == ' ') {
+      if (*buffer == 'e') {
         linha++;
         buffer++;
         tipo = OPR_WHILE;
@@ -354,7 +350,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q58;
       }
     q58: // void
-      if (*buffer == 'd' && *buffer + 1 == ' ') {
+      if (*buffer == 'd') {
         linha++;
         buffer++;
         tipo = OPR_VOID;
@@ -378,7 +374,7 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q62;
       }
     q62:
-      if (*buffer == 't' && *buffer + 1 == ' ') {
+      if (*buffer == 't') {
         linha++;
         buffer++;
         tipo = OPR_PRINT;
@@ -397,20 +393,14 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         return tipo;
       }
     q67:
-      if (*buffer == 'c' && *buffer + 1 == ' ') {
+      if (*buffer == 'c') {
         linha++;
         buffer++;
         tipo = OPR_PROC;
         goto q65;
       }
     erro: // erro
-      // if (*buffer == ' ') {
-      //   linha++;
-      //   buffer++;
-      //   goto q0;
-      // }
       tipo = ERRO;
-      // printf("%s\n", "Deu erro!");
       return tipo;
 
   } while (tipo != ERRO);
