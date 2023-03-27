@@ -122,8 +122,12 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
   // printf("%s\n", "dentro");
   LOOP:do {
     q0:
+      if (*buffer == '_') {
+        linha++;
+        buffer++;
+        goto q2;
+      }
       if (*buffer == 's') {
-        printf("%s\n", "dentro do s");
         linha++;
         buffer++;
         goto q16;
@@ -173,6 +177,14 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         buffer++;
         goto q42;
       }
+    q2:
+      if (isalpha(*buffer)) {
+        linha++;
+        buffer++;
+        tipo = IDENTIFICADOR;
+        goto q2;
+      }
+      goto q65;
     q16:
       if (*buffer == 'e') {
         linha++;
