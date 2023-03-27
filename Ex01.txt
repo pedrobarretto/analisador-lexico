@@ -1,8 +1,8 @@
-semic void _umProc ( int _a1 ) {
+void _umProc ( int _a1 ) {
  int _a ;
  _a = 1 ;
  if ( _a < 1 ) {
-_a = 12 ;
+ _a = 12 ;
  } ;
 }
 semic _correto {

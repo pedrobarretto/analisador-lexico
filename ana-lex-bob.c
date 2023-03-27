@@ -31,16 +31,21 @@ typedef enum {
   OPR_SUB,
   OPR_TIMES,
   OPR_DIV,
-  OPR_LESS_THEN,
-  OPR_LESS_OR_EQUAL_THEN,
-  OPR_HIGHER_THEN,
-  OPR_HIGHER_OR_EQUAL_THEN,
+  OPR_LESS_THAN,
+  OPR_LESS_OR_EQUAL_THAN,
+  OPR_HIGHER_THAN,
+  OPR_HIGHER_OR_EQUAL_THAN,
   OPR_EQUAL_TO,
   OPR_DIFERENT,
   OPR_EQUAL,
   OPR_VIRGULA,
   OPR_PONTO_E_VIRGULA,
-  OPR_COMENT
+  OPR_COMENT,
+  OPR_ABRE_PARENTESIS,
+  OPR_FECHA_PARENTESIS,
+  OPR_ABRE_CHAVES,
+  OPR_FECHA_CHAVES,
+  VALOR_NUMERICO
 } TOKEN_TYPE;
 
 char *tokenToStr[] = {
@@ -71,7 +76,12 @@ char *tokenToStr[] = {
   "Operador ATRIBUICAO",
   "Delimitador VIRGULA",
   "Delimitador PONTO E VIRGULA",
-  "Operador COMENTARIO"
+  "Operador COMENTARIO",
+  "Operador ABRE PARENTESIS",
+  "Operador FECHA PARENTESIS",
+  "Operador ABRE CHAVES",
+  "Operador FECHA CHAVES",
+  "Valor numerico"
 };
 
 // Ao final de tudo, um espaco vazio, menos em comentario e delimitador
@@ -119,13 +129,108 @@ int main(int argc, char *argv[])
 
 int scanner(char *palavra, TOKEN_TYPE tipo) {
   char c;
-  // printf("%s\n", "dentro");
+  // printf("%s\n", palavra);
+
+  // Desconsiderar identações do começo das linhas
+  if ((*buffer == ' ') || (*buffer == '\t') || (*buffer == '\r') || (*buffer == '\n')) {
+    linha++;
+		buffer++;
+  }
+
+  // if (isdigit(*buffer)) {
+  //   linha++;
+  //   buffer++;
+  //   tipo = VALOR_NUMERICO;
+  // }
+
+  while (isdigit(*buffer)) {
+    linha++;
+    buffer++;
+    tipo = VALOR_NUMERICO;
+  }
+
   LOOP:do {
     q0:
+      if (*buffer == '*') {
+        linha++;
+        buffer++;
+        tipo = OPR_TIMES;
+        return tipo;
+      }
+      if (*buffer == '+') {
+        linha++;
+        buffer++;
+        tipo = OPR_ADD;
+        return tipo;
+      }
+      if (*buffer == '-') {
+        linha++;
+        buffer++;
+        tipo = OPR_SUB;
+        return tipo;
+      }
+      if (*buffer == '/') { // TODO: Verificar se é começo de comentário
+        linha++;
+        buffer++;
+        tipo = OPR_DIV;
+        return tipo;
+      }
+      if (*buffer == ';') {
+        linha++;
+        buffer++;
+        tipo = OPR_PONTO_E_VIRGULA;
+        return tipo;
+      }
+      if (*buffer == ',') {
+      linha++;
+      buffer++;
+      tipo = OPR_VIRGULA;
+      goto q65;
+      }
+      if (*buffer == '(') {
+        linha++;
+        buffer++;
+        tipo = OPR_ABRE_PARENTESIS;
+        goto q65;
+      }
+      if (*buffer == ')') {
+        linha++;
+        buffer++;
+        tipo = OPR_FECHA_PARENTESIS;
+        return tipo;
+      }
+      if (*buffer == '{') {
+        linha++;
+        buffer++;
+        // buffer++; // FIXME: Só colocando isso por conta da identação que tem na outra linha
+        tipo = OPR_ABRE_CHAVES;
+        return tipo;
+      }
+      if (*buffer == '}') {
+        linha++;
+        buffer++;
+        tipo = OPR_FECHA_CHAVES;
+        return tipo;
+      }
       if (*buffer == '_') {
         linha++;
         buffer++;
         goto q2;
+      }
+      if (*buffer == '=') {
+        linha++;
+        buffer++;
+        goto q9;
+      }
+      if (*buffer == '<') {
+        linha++;
+        buffer++;
+        goto q7;
+      }
+      if (*buffer == '>') {
+        linha++;
+        buffer++;
+        goto q8;
       }
       if (*buffer == 's') {
         linha++;
@@ -177,14 +282,6 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         buffer++;
         goto q42;
       }
-    q2:
-      if (isalpha(*buffer)) {
-        linha++;
-        buffer++;
-        tipo = IDENTIFICADOR;
-        goto q2;
-      }
-      goto q65;
     q16:
       if (*buffer == 'e') {
         linha++;
@@ -401,8 +498,10 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
     q65: // final
       if (*buffer == ' ') {
         linha++;
-        buffer++;
+        // buffer++; // TODO: Precisa desse buffer++?
         return tipo;
+      } else {
+        goto erro;
       }
     q67:
       if (*buffer == 'c') {
@@ -411,6 +510,58 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         tipo = OPR_PROC;
         goto q65;
       }
+    q9:
+      if (*buffer == '=') { // Igualdade
+        linha++;
+        buffer++;
+        tipo = OPR_EQUAL_TO;
+        return tipo;
+      } else {
+        linha++;
+        buffer++;
+        tipo = OPR_EQUAL;
+        return tipo;
+      }
+    q7:
+      if (*buffer == '=') { // Menor ou igual
+        linha++;
+        buffer;
+        tipo = OPR_LESS_OR_EQUAL_THAN;
+        goto q65;
+      }
+      else if (*buffer == '>') { // DIferença
+        linha++;
+        buffer;
+        tipo = OPR_DIFERENT;
+        goto q65;
+      }
+      else { // Menor que
+        linha++;
+        buffer;
+        tipo = OPR_LESS_THAN;
+        goto q65;
+      }
+    q8:
+      if (*buffer == '=') { // Maior ou igual
+        linha++;
+        buffer;
+        tipo = OPR_HIGHER_OR_EQUAL_THAN;
+        goto q65;
+      }
+      else { // Maior que
+        linha++;
+        buffer;
+        tipo = OPR_HIGHER_THAN;
+        goto q65;
+      }
+    q2: // identificador
+      if (isalpha(*buffer) || isdigit(*buffer)) { // FIXME: Assim, uma var _123 pode ser aceita
+        linha++;
+        buffer++;
+        tipo = IDENTIFICADOR;
+        goto q2;
+      }
+      goto q65;
     erro: // erro
       tipo = ERRO;
       return tipo;
