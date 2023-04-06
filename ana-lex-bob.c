@@ -554,43 +554,35 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q65;
       }
     q5:
-      if (*buffer == '/' && *buffer + 1 != '*') {
-        printf("%s\n", "dentro de q5 divisao");
-        linha++;
-        buffer++;
-        tipo = OPR_DIV;
-        goto q65;
-      }
-
-      // Em q0, não fazemos essa add, pra poder cair no primeiro if
       linha++;
       buffer++;
 
       if (*buffer == '*') {
-        printf("%s\n", "dentro de q5 *");
-        if (*buffer == '*') {
-          printf("%s\n", "dentro de q5 segundo *");
-          if (*buffer == '/') {
-            printf("%s\n", "dentro de q5 if /");
-            linha++;
-            buffer++;
-            tipo = OPR_COMENT;
-            return tipo;
-          }
-        }
-        printf("%s\n", "dentro de q5 palavra ou num");
         linha++;
         buffer++;
-        goto q5;
-        // else if (isalpha(*buffer) || isalnum(*buffer)) {
-        //   printf("%s\n", "dentro de q5 palavra ou num");
-        //   linha++;
-        //   buffer++;
-        //   goto q5;
-        // }
-        // else {
-        //   goto erro;
-        // }
+        goto q66;
+      }
+
+      tipo = OPR_DIV;
+      
+      goto q65;
+    q66:
+      if (*buffer == '*') {
+        linha++;
+        buffer++;
+        goto q69;
+      }
+      if (isalpha(*buffer) || isdigit(*buffer) || *buffer == ' ') { // FIXME: Acho que preciso add quebra de linha além de ' '
+        linha++;
+        buffer++;
+        goto q66;
+      }
+    q69:
+      if (*buffer == '/') {
+        linha++;
+        buffer++;
+        tipo = OPR_COMENT;
+        return tipo;
       }
     q2: // identificador
       if (isalpha(*buffer) || isdigit(*buffer)) { // FIXME: Assim, uma var _123 pode ser aceita
