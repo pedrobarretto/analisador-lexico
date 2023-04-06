@@ -1,8 +1,8 @@
 void _umProc ( int _a1 ) {
  int _a ;
  _a = 1 ;
- if ( _a / 1 ) {
- _a = 12 ;
+ if ( _a < 1 ) {
+_a = 12 ;
  } ;
 }
 semic _correto {
@@ -15,7 +15,7 @@ semic _correto {
  _d = true ;
  _e = false ;
  _f = true ;
- print ( _b ) ; /* outro
+ print ( _b ) ; /* outro 
  comentario */
  if ( _d ) {
 _a = 20 ;
@@ -26,9 +26,9 @@ _c = _a / _b ;
  do {
 if ( _b > 10 ) {
  _b = 2 ;
- _a = _a – 1 ;
+ _a = _a - 1 ;
 } else {
- _a = _a – 1 ;
+ _a = _a - 1 ;
 } ;
  } while ( _a > 1 ) ;
 }

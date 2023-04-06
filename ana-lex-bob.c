@@ -45,7 +45,8 @@ typedef enum {
   OPR_FECHA_PARENTESIS,
   OPR_ABRE_CHAVES,
   OPR_FECHA_CHAVES,
-  VALOR_NUMERICO
+  VALOR_NUMERICO,
+  FIM_DE_ARQUIVO
 } TOKEN_TYPE;
 
 char *tokenToStr[] = {
@@ -81,7 +82,8 @@ char *tokenToStr[] = {
   "Operador FECHA PARENTESIS",
   "Operador ABRE CHAVES",
   "Operador FECHA CHAVES",
-  "Valor numerico"
+  "Valor numerico",
+  "Final do arquivo"
 };
 
 // Ao final de tudo, um espaco vazio, menos em comentario e delimitador
@@ -121,7 +123,7 @@ int main(int argc, char *argv[])
 		// printf("\nLinha:%3d | %-30s", linha, tk);
     printf("%s\n", tokenToStr[tk]);
     buffer++;
-	} while (tk != ERRO);
+	} while (tk != ERRO && tk != FIM_DE_ARQUIVO);
 
 	return 0;
 }
@@ -135,13 +137,16 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
 		buffer++;
   }
 
-  while (isdigit(*buffer)) {
-    buffer++;
-    tipo = VALOR_NUMERICO;
-  }
-
   LOOP:do {
     q0:
+      if ((*buffer == EOF) || (*buffer == '\x0')) {
+        tipo = FIM_DE_ARQUIVO;
+        return tipo;
+      }
+      if (isdigit(*buffer)) {
+        buffer++;
+        goto q71;
+      }
       if (*buffer == '*') {
         buffer++;
         tipo = OPR_TIMES;
@@ -423,9 +428,10 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         goto q65;
       }
     q64:
-      if (*buffer == 'o') {
+      if (*buffer == 'c') {
         buffer++;
-        goto q67;
+        tipo = OPR_PROC;
+        goto q65;
       }
     q65: // final
       if (*buffer == ' ') {
@@ -434,21 +440,15 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
       } else {
         goto erro;
       }
-    q67:
-      if (*buffer == 'c') {
-        buffer++;
-        tipo = OPR_PROC;
-        goto q65;
-      }
     q9:
       if (*buffer == '=') { // Igualdade
         buffer++;
         tipo = OPR_EQUAL_TO;
         return tipo;
       } else {
-        buffer++;
+        // buffer++;
         tipo = OPR_EQUAL;
-        return tipo;
+        goto q65;
       }
     q7:
       if (*buffer == '=') { // Menor ou igual
@@ -493,7 +493,14 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         buffer++;
         goto q69;
       }
-      if (isalpha(*buffer) || isdigit(*buffer) || *buffer == ' ') { // FIXME: Acho que preciso add quebra de linha além de ' '
+      if (
+          isalpha(*buffer) ||
+          isdigit(*buffer) ||
+          *buffer == ' ' ||
+          (*buffer == '\t') ||
+          (*buffer == '\r') ||
+          (*buffer == '\n')
+        ) {
         buffer++;
         goto q66;
       }
@@ -503,6 +510,14 @@ int scanner(char *palavra, TOKEN_TYPE tipo) {
         tipo = OPR_COMENT;
         return tipo;
       }
+    q71:
+      if (isdigit(*buffer)) {
+        buffer++;
+        goto q71;
+      }
+
+      tipo = VALOR_NUMERICO;
+      goto q65;
     q2: // identificador
       if (isalpha(*buffer) || isdigit(*buffer)) { // FIXME: Assim, uma var _123 pode ser aceita
         buffer++;
