@@ -88,48 +88,43 @@ char *tokenToStr[] = {
 
 // Ao final de tudo, um espaco vazio, menos em comentario e delimitador
 
-int scanner(char *palavra, TOKEN_TYPE tipo);
+int scanner(char lexema[20]);
 
-char *buffer;
 TOKEN_TYPE tipo;
 
-int main(int argc, char *argv[])
+int main()
 {
-  char *prvoid[4] = {"v", "o", "i", "d"};
+  char palavra[50] = "if 2345 true ( /* ** _x int */ _x ) >= ";
+  char lexema[20];
 
-  FILE *arq = fopen(argv[1], "r");
-  if (arq == NULL)
-	{
-		fprintf(stderr, "Erro ao tentar abrir o aquivo \"%s\"", argv[1]);
-		return -1;
-	}
+  char *token; // ponteiro para o token atual
+  char delimitador[] = " "; // o espaço em branco é o delimitador
+  
+  // extrai o primeiro token
+  token = strtok(palavra, delimitador);
 
-  fseek(arq, 0, SEEK_END);
-	int tam_arq = ftell(arq);
-	fseek(arq, 0, SEEK_SET);
+  // continua enquanto houver mais tokens
+  while (token != NULL) {
+      strcpy(lexema, token); // copia o token atual para a variável lexema
+      printf("%s\n", lexema); // imprime o token atual
+      token = strtok(NULL, delimitador); // extrai o próximo token
+      scanner(lexema);
+  }
 
-	buffer = (char *)calloc(tam_arq, sizeof(char));
-	if (buffer == NULL)
-		exit(-1);
-	else
-		fread(buffer, sizeof(char), tam_arq, arq);
-
-	fclose(arq);
-
-	int tk;
-	do
-	{
-		tk = scanner(buffer, tipo);
-		// printf("\nLinha:%3d | %-30s", linha, tk);
-    printf("%s\n", tokenToStr[tk]);
-    buffer++;
-	} while (tk != ERRO && tk != FIM_DE_ARQUIVO);
+	// int tk;
+	// do
+	// {
+	// 	tk = scanner(lexema);
+	// 	// printf("\nLinha:%3d | %-30s", linha, tk);
+  //   printf("%s\n", tokenToStr[tk]);
+  //   bufafer++;
+	// } while (tk != ERRO && tk != FIM_DE_ARQUIVO);
 
 	return 0;
 }
 
-// 1. Dentro da func scanner não tem loop de repetição
-// 2. A entrada da main será uma string constante no código
+// 1. Dentro da func scanner não tem loop de repetição OK
+// 2. A entrada da main será uma string constante no código OK
 // 3. Sem variáveis globais
 // 4. Um estado final para cada lexema, retornar o tipo e a palavra/simbolo/num
 // 5. O erro não precisa parar o analisador léxico
@@ -141,407 +136,405 @@ int main(int argc, char *argv[])
 // mandamos a palabra encontrada para a scanner, o scanner faz seu trabalho.
 // void _func ( _a )
 
-int scanner(char *palavra, TOKEN_TYPE tipo) {
-  char c;
+int scanner(char lexema[20]) {
+  char digit = lexema[0];
+  int counter = 0;
   // printf("%s\n", palavra);
 
   // Desconsiderar identações do começo das linhas
-  if ((*buffer == ' ') || (*buffer == '\t') || (*buffer == '\r') || (*buffer == '\n')) {
-		buffer++;
-  }
+  // if ((digit == ' ') || (digit == '\t') || (digit == '\r') || (digit == '\n')) {
+	// 	counter++;
+  // }
 
-  LOOP:do {
-    q0:
-      if ((*buffer == EOF) || (*buffer == '\x0')) {
-        tipo = FIM_DE_ARQUIVO;
-        return tipo;
-      }
-      if (isdigit(*buffer)) {
-        buffer++;
-        goto q71;
-      }
-      if (*buffer == '*') {
-        buffer++;
-        tipo = OPR_TIMES;
-        return tipo;
-      }
-      if (*buffer == '+') {
-        buffer++;
-        tipo = OPR_ADD;
-        return tipo;
-      }
-      if (*buffer == '-') {
-        buffer++;
-        tipo = OPR_SUB;
-        return tipo;
-      }
-      if (*buffer == '/') {
-        // b_uffer++;
-        goto q5;
-      }
-      if (*buffer == ';') {
-        buffer++;
-        tipo = OPR_PONTO_E_VIRGULA;
-        return tipo;
-      }
-      if (*buffer == ',') {
-      buffer++;
-      tipo = OPR_VIRGULA;
-      goto q65;
-      }
-      if (*buffer == '(') {
-        buffer++;
-        tipo = OPR_ABRE_PARENTESIS;
-        goto q65;
-      }
-      if (*buffer == ')') {
-        buffer++;
-        tipo = OPR_FECHA_PARENTESIS;
-        return tipo;
-      }
-      if (*buffer == '{') {
-        buffer++;
-        // buffer++; // FIXME: Só colocando isso por conta da identação que tem na outra linha
-        tipo = OPR_ABRE_CHAVES;
-        return tipo;
-      }
-      if (*buffer == '}') {
-        buffer++;
-        tipo = OPR_FECHA_CHAVES;
-        return tipo;
-      }
-      if (*buffer == '_') {
-        buffer++;
-        goto q2;
-      }
-      if (*buffer == '=') {
-        buffer++;
-        goto q9;
-      }
-      if (*buffer == '<') {
-        buffer++;
-        goto q7;
-      }
-      if (*buffer == '>') {
-        buffer++;
-        goto q8;
-      }
-      if (*buffer == 's') {
-        buffer++;
-        goto q16;
-      }
-      if (*buffer == 'i') {
-        buffer++;
-        goto q17;
-      }
-      if (*buffer == 'b') {
-        buffer++;
-        goto q18;
-      }
-      if (*buffer == 'd') {
-        buffer++;
-        goto q19;
-      }
-      if (*buffer == 't') {
-        buffer++;
-        goto q37;
-      }
-      if (*buffer == 'f') {
-        buffer++;
-        goto q38;
-      }
-      if (*buffer == 'e') {
-        buffer++;
-        goto q39;
-      }
-      if (*buffer == 'w') {
-        buffer++;
-        goto q40;
-      }
-      if (*buffer == 'v') {
-        buffer++;
-        goto q41;
-      }
-      if (*buffer == 'p') {
-        buffer++;
-        goto q42;
-      }
-    q16:
-      if (*buffer == 'e') {
-        buffer++;
-        goto q26;
-      }
-    q17: // if
-      if (*buffer == 'n') {
-        buffer++;
-        goto q30;
-      }
-      if (*buffer == 'f') {
-        buffer++;
-        tipo = OPR_IF;
-        goto q65;
-      }
-    q18:
-      if (*buffer == 'o') {
-        buffer++;
-        goto q33;
-      }
-    q19: // do
-      if (*buffer == 'o') {
-        buffer++;
-        tipo = OPR_DO;
-        goto q65;
-      }
-    q26:
-      if (*buffer == 'm') {
-        buffer++;
-        goto q27;
-      }
-    q27:
-      if (*buffer == 'i') {
-        buffer++;
-        goto q28;
-      }
-    q28: // semic
-      if (*buffer == 'c') {
-        buffer++;
-        tipo = OPR_SEMIC;
-        goto q65;
-      }
-    q30: // int
-      if (*buffer == 't') {
-        buffer++;
-        tipo = OPR_INT;
-        goto q65;
-      }
-    q33:
-      if (*buffer == 'o') {
-        buffer++;
-        goto q34;
-      }
-    q34: // bool
-      if (*buffer == 'l') {
-        buffer++;
-        tipo = OPR_BOOL;
-        goto q65;
-      }
-    q37:
-      if (*buffer == 'r') {
-        buffer++;
-        goto q43;
-      }
-    q38:
-      if (*buffer == 'a') {
-        buffer++;
-        goto q46;
-      }
-    q39:
-      if (*buffer == 'l') {
-        buffer++;
-        goto q50;
-      }
-    q40:
-      if (*buffer == 'h') {
-        buffer++;
-        goto q53;
-      }
-    q41:
-      if (*buffer == 'o') {
-        buffer++;
-        goto q57;
-      }
-    q42:
-      if (*buffer == 'r') {
-        buffer++;
-        goto q60;
-      }
-    q43:
-      if (*buffer == 'u') {
-        buffer++;
-        goto q44;
-      }
-    q44: // true
-      if (*buffer == 'e') {
-        buffer++;
-        tipo = OPR_TRUE;
-        goto q65;
-      }
-    q46:
-      if (*buffer == 'l') {
-        buffer++;
-        goto q47;
-      }
-    q47:
-      if (*buffer == 's') {
-        buffer++;
-        goto q48;
-      }
-    q48: // false
-      if (*buffer == 'e') {
-        buffer++;
-        tipo = OPR_FALSE;
-        goto q65;
-      }
-    q50:
-      if (*buffer == 's') {
-        buffer++;
-        goto q51;
-      }
-    q51:
-      if (*buffer == 'e') {
-        buffer++;
-        tipo = OPR_ELSE;
-        goto q65;
-      }
-    q53:
-      if (*buffer == 'i') {
-        buffer++;
-        goto q54;
-      }
-    q54:
-      if (*buffer == 'l') {
-        buffer++;
-        goto q55;
-      }
-    q55: // while
-      if (*buffer == 'e') {
-        buffer++;
-        tipo = OPR_WHILE;
-        goto q65;
-      }
-    q57:
-      if (*buffer == 'i') {
-        buffer++;
-        goto q58;
-      }
-    q58: // void
-      if (*buffer == 'd') {
-        buffer++;
-        tipo = OPR_VOID;
-        goto q65;
-      }
-    q60:
-      if (*buffer == 'i') {
-        buffer++;
-        goto q61;
-      }
-      if (*buffer == 'o') {
-        buffer++;
-        goto q64;
-      }
-    q61:
-      if (*buffer == 'n') {
-        buffer++;
-        goto q62;
-      }
-    q62:
-      if (*buffer == 't') {
-        buffer++;
-        tipo = OPR_PRINT;
-        goto q65;
-      }
-    q64:
-      if (*buffer == 'c') {
-        buffer++;
-        tipo = OPR_PROC;
-        goto q65;
-      }
-    q65: // final
-      if (*buffer == ' ') {
-        // buffer++; // TODO: Precisa desse buffer++?
-        return tipo;
-      } else {
-        goto erro;
-      }
-    q9:
-      if (*buffer == '=') { // Igualdade
-        buffer++;
-        tipo = OPR_EQUAL_TO;
-        return tipo;
-      } else {
-        // buffer++;
-        tipo = OPR_EQUAL;
-        goto q65;
-      }
-    q7:
-      if (*buffer == '=') { // Menor ou igual
-        buffer;
-        tipo = OPR_LESS_OR_EQUAL_THAN;
-        goto q65;
-      }
-      else if (*buffer == '>') { // DIferença
-        buffer;
-        tipo = OPR_DIFERENT;
-        goto q65;
-      }
-      else { // Menor que
-        buffer;
-        tipo = OPR_LESS_THAN;
-        goto q65;
-      }
-    q8:
-      if (*buffer == '=') { // Maior ou igual
-        buffer;
-        tipo = OPR_HIGHER_OR_EQUAL_THAN;
-        goto q65;
-      }
-      else { // Maior que
-        buffer;
-        tipo = OPR_HIGHER_THAN;
-        goto q65;
-      }
-    q5:
-      buffer++;
 
-      if (*buffer == '*') {
-        buffer++;
-        goto q66;
-      }
-
-      tipo = OPR_DIV;
-      
-      goto q65;
-    q66:
-      if (*buffer == '*') {
-        buffer++;
-        goto q69;
-      }
-      if (
-          isalpha(*buffer) ||
-          isdigit(*buffer) ||
-          *buffer == ' ' ||
-          (*buffer == '\t') ||
-          (*buffer == '\r') ||
-          (*buffer == '\n')
-        ) {
-        buffer++;
-        goto q66;
-      }
-    q69:
-      if (*buffer == '/') {
-        buffer++;
-        tipo = OPR_COMENT;
-        return tipo;
-      }
-    q71:
-      if (isdigit(*buffer)) {
-        buffer++;
-        goto q71;
-      }
-
-      tipo = VALOR_NUMERICO;
-      goto q65;
-    q2: // identificador
-      if (isalpha(*buffer) || isdigit(*buffer)) { // FIXME: Assim, uma var _123 pode ser aceita
-        buffer++;
-        tipo = IDENTIFICADOR;
-        goto q2;
-      }
-      goto q65;
-    erro: // erro
-      tipo = ERRO;
+  q0:
+    // if ((digit == EOF) || (digit == '\x0')) {
+    //   tipo = FIM_DE_ARQUIVO;
+    //   return tipo;
+    // }
+    if (isdigit(digit)) {
+      counter++;
+      goto q71;
+    }
+    if (digit == '*') {
+      counter++;
+      tipo = OPR_TIMES;
       return tipo;
+    }
+    if (digit == '+') {
+      counter++;
+      tipo = OPR_ADD;
+      return tipo;
+    }
+    if (digit == '-') {
+      counter++;
+      tipo = OPR_SUB;
+      return tipo;
+    }
+    if (digit == '/') {
+      // b_uffer++;
+      goto q5;
+    }
+    if (digit == ';') {
+      counter++;
+      tipo = OPR_PONTO_E_VIRGULA;
+      return tipo;
+    }
+    if (digit == ',') {
+    counter++;
+    tipo = OPR_VIRGULA;
+    goto q65;
+    }
+    if (digit == '(') {
+      counter++;
+      tipo = OPR_ABRE_PARENTESIS;
+      goto q65;
+    }
+    if (digit == ')') {
+      counter++;
+      tipo = OPR_FECHA_PARENTESIS;
+      return tipo;
+    }
+    if (digit == '{') {
+      counter++;
+      // buffser++; // FIXME: Só colocando isso por conta da identação que tem na outra linha
+      tipo = OPR_ABRE_CHAVES;
+      return tipo;
+    }
+    if (digit == '}') {
+      counter++;
+      tipo = OPR_FECHA_CHAVES;
+      return tipo;
+    }
+    if (digit == '_') {
+      counter++;
+      goto q2;
+    }
+    if (digit == '=') {
+      counter++;
+      goto q9;
+    }
+    if (digit == '<') {
+      counter++;
+      goto q7;
+    }
+    if (digit == '>') {
+      counter++;
+      goto q8;
+    }
+    if (digit == 's') {
+      counter++;
+      goto q16;
+    }
+    if (digit == 'i') {
+      counter++;
+      goto q17;
+    }
+    if (digit == 'b') {
+      counter++;
+      goto q18;
+    }
+    if (digit == 'd') {
+      counter++;
+      goto q19;
+    }
+    if (digit == 't') {
+      counter++;
+      goto q37;
+    }
+    if (digit == 'f') {
+      counter++;
+      goto q38;
+    }
+    if (digit == 'e') {
+      counter++;
+      goto q39;
+    }
+    if (digit == 'w') {
+      counter++;
+      goto q40;
+    }
+    if (digit == 'v') {
+      counter++;
+      goto q41;
+    }
+    if (digit == 'p') {
+      counter++;
+      goto q42;
+    }
+  q16:
+    if (digit == 'e') {
+      counter++;
+      goto q26;
+    }
+  q17: // if
+    if (digit == 'n') {
+      counter++;
+      goto q30;
+    }
+    if (digit == 'f') {
+      counter++;
+      tipo = OPR_IF;
+      goto q65;
+    }
+  q18:
+    if (digit == 'o') {
+      counter++;
+      goto q33;
+    }
+  q19: // do
+    if (digit == 'o') {
+      counter++;
+      tipo = OPR_DO;
+      goto q65;
+    }
+  q26:
+    if (digit == 'm') {
+      counter++;
+      goto q27;
+    }
+  q27:
+    if (digit == 'i') {
+      counter++;
+      goto q28;
+    }
+  q28: // semic
+    if (digit == 'c') {
+      counter++;
+      tipo = OPR_SEMIC;
+      goto q65;
+    }
+  q30: // int
+    if (digit == 't') {
+      counter++;
+      tipo = OPR_INT;
+      goto q65;
+    }
+  q33:
+    if (digit == 'o') {
+      counter++;
+      goto q34;
+    }
+  q34: // bool
+    if (digit == 'l') {
+      counter++;
+      tipo = OPR_BOOL;
+      goto q65;
+    }
+  q37:
+    if (digit == 'r') {
+      counter++;
+      goto q43;
+    }
+  q38:
+    if (digit == 'a') {
+      counter++;
+      goto q46;
+    }
+  q39:
+    if (digit == 'l') {
+      counter++;
+      goto q50;
+    }
+  q40:
+    if (digit == 'h') {
+      counter++;
+      goto q53;
+    }
+  q41:
+    if (digit == 'o') {
+      counter++;
+      goto q57;
+    }
+  q42:
+    if (digit == 'r') {
+      counter++;
+      goto q60;
+    }
+  q43:
+    if (digit == 'u') {
+      counter++;
+      goto q44;
+    }
+  q44: // true
+    if (digit == 'e') {
+      counter++;
+      tipo = OPR_TRUE;
+      goto q65;
+    }
+  q46:
+    if (digit == 'l') {
+      counter++;
+      goto q47;
+    }
+  q47:
+    if (digit == 's') {
+      counter++;
+      goto q48;
+    }
+  q48: // false
+    if (digit == 'e') {
+      counter++;
+      tipo = OPR_FALSE;
+      goto q65;
+    }
+  q50:
+    if (digit == 's') {
+      counter++;
+      goto q51;
+    }
+  q51:
+    if (digit == 'e') {
+      counter++;
+      tipo = OPR_ELSE;
+      goto q65;
+    }
+  q53:
+    if (digit == 'i') {
+      counter++;
+      goto q54;
+    }
+  q54:
+    if (digit == 'l') {
+      counter++;
+      goto q55;
+    }
+  q55: // while
+    if (digit == 'e') {
+      counter++;
+      tipo = OPR_WHILE;
+      goto q65;
+    }
+  q57:
+    if (digit == 'i') {
+      counter++;
+      goto q58;
+    }
+  q58: // void
+    if (digit == 'd') {
+      counter++;
+      tipo = OPR_VOID;
+      goto q65;
+    }
+  q60:
+    if (digit == 'i') {
+      counter++;
+      goto q61;
+    }
+    if (digit == 'o') {
+      counter++;
+      goto q64;
+    }
+  q61:
+    if (digit == 'n') {
+      counter++;
+      goto q62;
+    }
+  q62:
+    if (digit == 't') {
+      counter++;
+      tipo = OPR_PRINT;
+      goto q65;
+    }
+  q64:
+    if (digit == 'c') {
+      counter++;
+      tipo = OPR_PROC;
+      goto q65;
+    }
+  q65: // final
+    if (digit == ' ') {
+      // busffer++; // TODO: Precisa desse buffer++?
+      return tipo;
+    } else {
+      goto erro;
+    }
+  q9:
+    if (digit == '=') { // Igualdade
+      counter++;
+      tipo = OPR_EQUAL_TO;
+      return tipo;
+    } else {
+      // busffer++;
+      tipo = OPR_EQUAL;
+      goto q65;
+    }
+  q7:
+    if (digit == '=') { // Menor ou igual
+      counter++;
+      tipo = OPR_LESS_OR_EQUAL_THAN;
+      goto q65;
+    }
+    else if (digit == '>') { // DIferença
+      counter++;
+      tipo = OPR_DIFERENT;
+      goto q65;
+    }
+    else { // Menor que
+      counter++;
+      tipo = OPR_LESS_THAN;
+      goto q65;
+    }
+  q8:
+    if (digit == '=') { // Maior ou igual
+      counter++;
+      tipo = OPR_HIGHER_OR_EQUAL_THAN;
+      goto q65;
+    }
+    else { // Maior que
+      counter++;
+      tipo = OPR_HIGHER_THAN;
+      goto q65;
+    }
+  q5:
+    counter++;
 
-  } while (tipo != ERRO);
-  
+    if (digit == '*') {
+      counter++;
+      goto q66;
+    }
+
+    tipo = OPR_DIV;
+    
+    goto q65;
+  q66:
+    if (digit == '*') {
+      counter++;
+      goto q69;
+    }
+    if (
+        isalpha(digit) ||
+        isdigit(digit) ||
+        digit == ' ' ||
+        (digit == '\t') ||
+        (digit == '\r') ||
+        (digit == '\n')
+      ) {
+      counter++;
+      goto q66;
+    }
+  q69:
+    if (digit == '/') {
+      counter++;
+      tipo = OPR_COMENT;
+      return tipo;
+    }
+  q71:
+    if (isdigit(digit)) {
+      counter++;
+      goto q71;
+    }
+
+    tipo = VALOR_NUMERICO;
+    goto q65;
+  q2: // identificador
+    if (isalpha(digit) || isdigit(digit)) { // FIXME: Assim, uma var _123 pode ser aceita
+      counter++;
+      tipo = IDENTIFICADOR;
+      goto q2;
+    }
+    goto q65;
+  erro: // erro
+    tipo = ERRO;
+    return tipo;
 }
