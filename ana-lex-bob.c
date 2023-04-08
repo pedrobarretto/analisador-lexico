@@ -128,6 +128,19 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+// 1. Dentro da func scanner não tem loop de repetição
+// 2. A entrada da main será uma string constante no código
+// 3. Sem variáveis globais
+// 4. Um estado final para cada lexema, retornar o tipo e a palavra/simbolo/num
+// 5. O erro não precisa parar o analisador léxico
+// 6. Um espaço final depois de todo lexema
+// 7. Mudar de Operador XXX para <Palavra reservada, XXX>
+
+// 2 -> char* + counter (msm tamanho do char)
+// Na main iteramos sobre a frase até encontrar um espaço,
+// mandamos a palabra encontrada para a scanner, o scanner faz seu trabalho.
+// void _func ( _a )
+
 int scanner(char *palavra, TOKEN_TYPE tipo) {
   char c;
   // printf("%s\n", palavra);

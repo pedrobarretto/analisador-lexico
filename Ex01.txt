@@ -16,13 +16,13 @@ semic _correto {
  _e = false ;
  _f = true ;
  print ( _b ) ; /* outro 
- comentario */
+ comentario */ 
  if ( _d ) {
 _a = 20 ;
 _b = 10 * _c ;
 _c = _a / _b ;
  } ;
- proc _umProc ( 10 ) ;
+ proc _umProc ( 10 ) ; 
  do {
 if ( _b > 10 ) {
  _b = 2 ;
