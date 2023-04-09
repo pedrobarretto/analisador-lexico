@@ -26,7 +26,9 @@ Token scanner(char lexema[20]);
 
 // main antiga
 // int main() {
-//   char palavra[50] = "if 2345 true ( /* ** _x int */ _x ) >= ";
+//   //char palavra[50] = "if 2345 true ( /* ** _x int */ _x ) >= ";
+//   char palavra[50] = "if 2345 true ( _x ) >= ";
+//   char commment[20] = "/* 123**123 */ ";
 //   // FIXME: Resolver erro quando ultimo espaço não existe
 //   // char palavra[100] = "_Var _Counter _ _123 _Err23o";
 //   char lexema[20];
@@ -46,6 +48,9 @@ Token scanner(char lexema[20]);
 //     free(tk.lexema);
 //     token = strtok(NULL, delimitador); // Extrai o próximo token
 //   }
+
+//   Token tk = scanner(commment);
+//   printf("%s, %s>\n", tk.string, tk.lexema);
 
 // 	return 0;
 // }
@@ -90,9 +95,6 @@ int main() {
   return 0;
 }
 
-// 3. Sem variáveis globais
-
-
 Token scanner(char lexema[20]) {
   char digit = lexema[0];
   int counter = 0;
@@ -119,6 +121,7 @@ Token scanner(char lexema[20]) {
       goto q71;
     }
     if (digit == '/') {
+      printf("%s\n", "dentro de /");
       counter++;
       digit = lexema[counter];
       goto q75;
@@ -601,26 +604,24 @@ Token scanner(char lexema[20]) {
       goto q76;
     }
     if (digit == '*') {
+      printf("%s\n", "dentro de q75 *");
       counter++;
       digit = lexema[counter];
       goto q77;
     } else {
+      printf("%s\n", "dentro de q75 erro");
       goto erro;
     }
   q76: // /
     return generateToken("<Operador de divisao ", lexema);
   q77:
     if (digit == ' ') {
+      printf("%s\n", "dentro de q77");
       counter++;
       digit = lexema[counter];
       goto q78;
     }
   q78:
-    if (digit == ' ') {
-      counter++;
-      digit = lexema[counter];
-      goto q94;
-    }
     if (
       isalpha(digit) ||
       isalnum(digit) ||
@@ -637,11 +638,13 @@ Token scanner(char lexema[20]) {
       digit == '>' ||
       digit == '_' ||
       digit == '}' ||
-      digit == '{'
+      digit == '{' ||
+      digit == ' '
     ) {
+      printf("%s\n", "dentro de q78 tudo");
       counter++;
       digit = lexema[counter];
-      goto q78;
+      goto q94;
     }
   q79:
     if (digit == ' ') {
@@ -730,8 +733,15 @@ Token scanner(char lexema[20]) {
     } else {
       goto erro;
     }
-  q94: // duas saidas para *, vai dar merda
-    if (digit == ' ') {
+  q94:
+    if (digit == '*') {
+      printf("%s\n", "dentro de q94 *");
+      counter++;
+      digit = lexema[counter];
+      goto q94;
+    }
+    if (digit == '/' || digit == ' ') {
+      printf("%s\n", "dentro de q94 / e espaco");
       counter++;
       digit = lexema[counter];
       goto q95;
@@ -741,11 +751,9 @@ Token scanner(char lexema[20]) {
       isalnum(digit) ||
       digit == '(' ||
       digit == ')' ||
-      digit == '*' ||
       digit == '+' ||
       digit == '-' ||
       digit == ',' ||
-      digit == '/' ||
       digit == ';' ||
       digit == '<' ||
       digit == '=' ||
@@ -754,33 +762,44 @@ Token scanner(char lexema[20]) {
       digit == '}' ||
       digit == '{'
     ) {
+      printf("%s\n", "dentro de q94 tudo");
       counter++;
       digit = lexema[counter];
       goto q78;
     }
-    if (digit == ' ') {
-      counter++;
-      digit = lexema[counter];
-      goto q95;
-    }
   q95:
-    if (digit == '*') {
-      counter++;
-      digit = lexema[counter];
+    if (digit == ' ') {
+      printf("%s\n", "dentro de q95 espaco");
       goto q96;
     }
-  q96:
-    if (digit == '/') {
+    if (
+      isalpha(digit) ||
+      isalnum(digit) ||
+      digit == '(' ||
+      digit == ')' ||
+      digit == '+' ||
+      digit == '-' ||
+      digit == ',' ||
+      digit == ';' ||
+      digit == '<' ||
+      digit == '=' ||
+      digit == '>' ||
+      digit == '_' ||
+      digit == '}' ||
+      digit == '{' ||
+      digit == '/' ||
+      digit == '*'
+    ) {
+      printf("%s\n", "dentro de q95 tudo");
       counter++;
       digit = lexema[counter];
-      goto q97;
-    }
-  q97:
-    if (digit == ' ') {
-      goto q101;
+      goto q94;
     } else {
       goto erro;
     }
+  q96: // Comentario
+    printf("%s\n", "dentro de q96");
+    return generateToken("<Comentário ", lexema);
   q98: // Identificador
     return generateToken("<Identificador ", lexema);
   q99:
@@ -796,8 +815,6 @@ Token scanner(char lexema[20]) {
     }
   q100: // Digitos
     return generateToken("<Operador numerico ", lexema);
-  q101: // Comentario
-    return generateToken("<Comentário ", lexema);
   erro: // Erro léxico
     return generateToken("<Erro lexico ", lexema);
 }
