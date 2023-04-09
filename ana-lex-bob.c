@@ -28,6 +28,7 @@ Token scanner(char lexema[20]);
 
 int main() {
   char palavra[50] = "if 2345 true ( /* ** _x int * */ _x ) >= ";
+  // char palavra[50] = "/* ** _x int * */ ";
   char lexema[20];
   char *token;
   char delimitador[] = " ";
@@ -717,12 +718,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q94:
-    if (digit == '*') {
-      counter++;
-      digit = lexema[counter];
-      goto q94;
-    }
-    if (digit == '/' || digit == ' ') {
+    if (digit == '*' || digit == ' ') {
       counter++;
       digit = lexema[counter];
       goto q95;
@@ -748,7 +744,9 @@ Token scanner(char lexema[20]) {
       goto q78;
     }
   q95:
-    if (digit == ' ') {
+    if (digit == '/') {
+      counter++;
+      digit = lexema[counter];
       goto q96;
     }
     if (
@@ -766,7 +764,6 @@ Token scanner(char lexema[20]) {
       digit == '_' ||
       digit == '}' ||
       digit == '{' ||
-      digit == '/' ||
       digit == '*'
     ) {
       counter++;
@@ -775,7 +772,13 @@ Token scanner(char lexema[20]) {
     } else {
       goto erro;
     }
-  q96: // Comentario
+  q96:
+    if (digit == ' ') {
+      goto q97;
+    } else {
+      goto erro;
+    }
+  q97: // Comentario
     return generateToken("<Comentário ", lexema);
   q98: // Identificador
     return generateToken("<Identificador ", lexema);
