@@ -11,6 +11,8 @@ typedef struct {
   char* lexema;
 } Token;
 
+Token generateToken(const char* str, const char* lex);
+
 Token generateToken(const char* str, const char* lex) {
   Token token;
   int str_len = strlen(str);
@@ -24,62 +26,36 @@ Token generateToken(const char* str, const char* lex) {
 
 Token scanner(char lexema[20]);
 
-// main antiga
-// int main() {
-//   //char palavra[50] = "if 2345 true ( /* ** _x int */ _x ) >= ";
-//   char palavra[50] = "if 2345 true ( _x ) >= ";
-//   char commment[20] = "/* 123**123 */ ";
-//   // FIXME: Resolver erro quando ultimo espaço não existe
-//   // char palavra[100] = "_Var _Counter _ _123 _Err23o";
-//   char lexema[20];
-
-//   char *token; // Ponteiro para o token atual
-//   char delimitador[] = " "; // O espaço em branco é o delimitador
-  
-//   // Extrai o primeiro token
-//   token = strtok(palavra, delimitador);
-
-//   // Continua enquanto houver mais tokens
-//   while (token != NULL) {
-//     sprintf(lexema, "%s ", token); // Inclui um espaço em branco após do token
-//     Token tk = scanner(lexema);
-//     printf("%s, %s>\n", tk.string, tk.lexema);
-//     free(tk.string);
-//     free(tk.lexema);
-//     token = strtok(NULL, delimitador); // Extrai o próximo token
-//   }
-
-//   Token tk = scanner(commment);
-//   printf("%s, %s>\n", tk.string, tk.lexema);
-
-// 	return 0;
-// }
-
 int main() {
   char palavra[50] = "if 2345 true ( /* ** _x int * */ _x ) >= ";
   char lexema[20];
   char *token;
   char delimitador[] = " ";
   int in_comment = 0; // variável para indicar se está dentro de um comentário ou não
-  
+  char comment[20] = ""; // variável temporária para armazenar comentários que não terminam em "*/"
+
   token = strtok(palavra, delimitador);
   
   while (token != NULL) {
     if (in_comment) {
-      strcat(lexema, " ");
-      strcat(lexema, token);
-      if (strstr(lexema, "*/") != NULL) {
+      strcat(comment, " ");
+      strcat(comment, token);
+      if (strstr(comment, "*/") != NULL) {
         in_comment = 0;
-        Token tk = scanner(lexema);
+        strcat(comment, " "); // adiciona espaço em branco após "*/"
+        Token tk = scanner(comment);
         printf("%s, %s>\n", tk.string, tk.lexema);
         free(tk.string);
         free(tk.lexema);
-        lexema[0] = '\0';
+        comment[0] = '\0';
       }
     } else if (strstr(token, "/*") != NULL) {
       in_comment = 1;
       lexema[0] = '\0';
       strcat(lexema, token);
+      if (strstr(token, "*/") == NULL) {
+        strcpy(comment, token); // armazena o comentário na variável temporária
+      }
     } else {
       sprintf(lexema, "%s ", token);
       Token tk = scanner(lexema);
@@ -121,7 +97,6 @@ Token scanner(char lexema[20]) {
       goto q71;
     }
     if (digit == '/') {
-      printf("%s\n", "dentro de /");
       counter++;
       digit = lexema[counter];
       goto q75;
@@ -604,19 +579,16 @@ Token scanner(char lexema[20]) {
       goto q76;
     }
     if (digit == '*') {
-      printf("%s\n", "dentro de q75 *");
       counter++;
       digit = lexema[counter];
       goto q77;
     } else {
-      printf("%s\n", "dentro de q75 erro");
       goto erro;
     }
   q76: // /
     return generateToken("<Operador de divisao ", lexema);
   q77:
     if (digit == ' ') {
-      printf("%s\n", "dentro de q77");
       counter++;
       digit = lexema[counter];
       goto q78;
@@ -641,7 +613,6 @@ Token scanner(char lexema[20]) {
       digit == '{' ||
       digit == ' '
     ) {
-      printf("%s\n", "dentro de q78 tudo");
       counter++;
       digit = lexema[counter];
       goto q94;
@@ -735,13 +706,11 @@ Token scanner(char lexema[20]) {
     }
   q94:
     if (digit == '*') {
-      printf("%s\n", "dentro de q94 *");
       counter++;
       digit = lexema[counter];
       goto q94;
     }
     if (digit == '/' || digit == ' ') {
-      printf("%s\n", "dentro de q94 / e espaco");
       counter++;
       digit = lexema[counter];
       goto q95;
@@ -762,14 +731,12 @@ Token scanner(char lexema[20]) {
       digit == '}' ||
       digit == '{'
     ) {
-      printf("%s\n", "dentro de q94 tudo");
       counter++;
       digit = lexema[counter];
       goto q78;
     }
   q95:
     if (digit == ' ') {
-      printf("%s\n", "dentro de q95 espaco");
       goto q96;
     }
     if (
@@ -790,7 +757,6 @@ Token scanner(char lexema[20]) {
       digit == '/' ||
       digit == '*'
     ) {
-      printf("%s\n", "dentro de q95 tudo");
       counter++;
       digit = lexema[counter];
       goto q94;
@@ -798,7 +764,6 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q96: // Comentario
-    printf("%s\n", "dentro de q96");
     return generateToken("<Comentário ", lexema);
   q98: // Identificador
     return generateToken("<Identificador ", lexema);
