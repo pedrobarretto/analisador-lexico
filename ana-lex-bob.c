@@ -6,535 +6,798 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#define _ACEITA_ 1
-#define _REJEITA_ 0
+typedef struct {
+  char* string;
+  char* lexema;
+} Token;
 
-#define TRUE 1
-#define FALSE 0
-
-typedef enum {
-  ERRO,
-  OPR_VOID,
-  OPR_SEMIC,
-  OPR_IF,
-  OPR_ELSE,
-  OPR_PRINT,
-  OPR_TRUE,
-  OPR_FALSE,
-  OPR_DO,
-  OPR_WHILE,
-  OPR_PROC,
-  OPR_INT,
-  OPR_BOOL,
-  IDENTIFICADOR,
-  OPR_ADD,
-  OPR_SUB,
-  OPR_TIMES,
-  OPR_DIV,
-  OPR_LESS_THAN,
-  OPR_LESS_OR_EQUAL_THAN,
-  OPR_HIGHER_THAN,
-  OPR_HIGHER_OR_EQUAL_THAN,
-  OPR_EQUAL_TO,
-  OPR_DIFERENT,
-  OPR_EQUAL,
-  OPR_VIRGULA,
-  OPR_PONTO_E_VIRGULA,
-  OPR_COMENT,
-  OPR_ABRE_PARENTESIS,
-  OPR_FECHA_PARENTESIS,
-  OPR_ABRE_CHAVES,
-  OPR_FECHA_CHAVES,
-  VALOR_NUMERICO,
-  FIM_DE_ARQUIVO
-} TOKEN_TYPE;
-
-char *tokenToStr[] = {
-  "Erro",
-  "Operador VOID",
-  "Operador SEMIC",
-  "Operador IF",
-  "Operador ELSE",
-  "Operador PRINT",
-  "Operador TRUE",
-  "Operador FALSE",
-  "Operador DO",
-  "Operador WHILE",
-  "Operador PROC",
-  "Tipo INTEIRO",
-  "Tipo BOOLEANO",
-  "IDENTIFICADOR",
-  "Operador ADD",
-  "Operador SUB",
-  "Operador MULTIPLICACAO",
-  "Operador DIVISAO",
-  "Operador MENOR QUE",
-  "Operador MENOR OU IGUAL QUE",
-  "Operador MAIOR QUE",
-  "Operador MAIOR OU IGUAL QUE",
-  "Operador IGUALDADE",
-  "Operador DIFERENCA",
-  "Operador ATRIBUICAO",
-  "Delimitador VIRGULA",
-  "Delimitador PONTO E VIRGULA",
-  "Operador COMENTARIO",
-  "Operador ABRE PARENTESIS",
-  "Operador FECHA PARENTESIS",
-  "Operador ABRE CHAVES",
-  "Operador FECHA CHAVES",
-  "Valor numerico",
-  "Final do arquivo"
-};
-
-// Ao final de tudo, um espaco vazio, menos em comentario e delimitador
-
-int scanner(char lexema[20]);
-
-TOKEN_TYPE tipo;
-
-int main()
-{
-  char palavra[50] = "if 2345 true ( /* ** _x int */ _x ) >= ";
-  char lexema[20];
-
-  char *token; // ponteiro para o token atual
-  char delimitador[] = " "; // o espaço em branco é o delimitador
-  
-  // extrai o primeiro token
-  token = strtok(palavra, delimitador);
-
-  // continua enquanto houver mais tokens
-  while (token != NULL) {
-      strcpy(lexema, token); // copia o token atual para a variável lexema
-      printf("%s\n", lexema); // imprime o token atual
-      token = strtok(NULL, delimitador); // extrai o próximo token
-      scanner(lexema);
-  }
-
-	// int tk;
-	// do
-	// {
-	// 	tk = scanner(lexema);
-	// 	// printf("\nLinha:%3d | %-30s", linha, tk);
-  //   printf("%s\n", tokenToStr[tk]);
-  //   bufafer++;
-	// } while (tk != ERRO && tk != FIM_DE_ARQUIVO);
-
-	return 0;
+Token generateToken(const char* str, const char* lex) {
+  Token token;
+  int str_len = strlen(str);
+  int lex_len = strlen(lex);
+  token.string = malloc(str_len + 1);
+  token.lexema = malloc(lex_len + 1);
+  strcpy(token.string, str);
+  strcpy(token.lexema, lex);
+  return token;
 }
 
-// 1. Dentro da func scanner não tem loop de repetição OK
-// 2. A entrada da main será uma string constante no código OK
+Token scanner(char lexema[20]);
+
+// main antiga
+// int main() {
+//   char palavra[50] = "if 2345 true ( /* ** _x int */ _x ) >= ";
+//   // FIXME: Resolver erro quando ultimo espaço não existe
+//   // char palavra[100] = "_Var _Counter _ _123 _Err23o";
+//   char lexema[20];
+
+//   char *token; // Ponteiro para o token atual
+//   char delimitador[] = " "; // O espaço em branco é o delimitador
+  
+//   // Extrai o primeiro token
+//   token = strtok(palavra, delimitador);
+
+//   // Continua enquanto houver mais tokens
+//   while (token != NULL) {
+//     sprintf(lexema, "%s ", token); // Inclui um espaço em branco após do token
+//     Token tk = scanner(lexema);
+//     printf("%s, %s>\n", tk.string, tk.lexema);
+//     free(tk.string);
+//     free(tk.lexema);
+//     token = strtok(NULL, delimitador); // Extrai o próximo token
+//   }
+
+// 	return 0;
+// }
+
+int main() {
+  char palavra[50] = "if 2345 true ( /* ** _x int * */ _x ) >= ";
+  char lexema[20];
+  char *token;
+  char delimitador[] = " ";
+  int in_comment = 0; // variável para indicar se está dentro de um comentário ou não
+  
+  token = strtok(palavra, delimitador);
+  
+  while (token != NULL) {
+    if (in_comment) {
+      strcat(lexema, " ");
+      strcat(lexema, token);
+      if (strstr(lexema, "*/") != NULL) {
+        in_comment = 0;
+        Token tk = scanner(lexema);
+        printf("%s, %s>\n", tk.string, tk.lexema);
+        free(tk.string);
+        free(tk.lexema);
+        lexema[0] = '\0';
+      }
+    } else if (strstr(token, "/*") != NULL) {
+      in_comment = 1;
+      lexema[0] = '\0';
+      strcat(lexema, token);
+    } else {
+      sprintf(lexema, "%s ", token);
+      Token tk = scanner(lexema);
+      if (strcmp(token, "*/") != 0) {
+        printf("%s, %s>\n", tk.string, tk.lexema);
+        free(tk.string);
+        free(tk.lexema);
+      }
+    }
+    token = strtok(NULL, delimitador);
+  }
+
+  return 0;
+}
+
 // 3. Sem variáveis globais
-// 4. Um estado final para cada lexema, retornar o tipo e a palavra/simbolo/num
-// 5. O erro não precisa parar o analisador léxico
-// 6. Um espaço final depois de todo lexema
-// 7. Mudar de Operador XXX para <Palavra reservada, XXX>
 
-// 2 -> char* + counter (msm tamanho do char)
-// Na main iteramos sobre a frase até encontrar um espaço,
-// mandamos a palabra encontrada para a scanner, o scanner faz seu trabalho.
-// void _func ( _a )
 
-int scanner(char lexema[20]) {
+Token scanner(char lexema[20]) {
   char digit = lexema[0];
   int counter = 0;
-  // printf("%s\n", palavra);
-
-  // Desconsiderar identações do começo das linhas
-  // if ((digit == ' ') || (digit == '\t') || (digit == '\r') || (digit == '\n')) {
-	// 	counter++;
-  // }
-
 
   q0:
-    // if ((digit == EOF) || (digit == '\x0')) {
-    //   tipo = FIM_DE_ARQUIVO;
-    //   return tipo;
-    // }
     if (isdigit(digit)) {
       counter++;
-      goto q71;
+      digit = lexema[counter];
+      goto q99;
     }
     if (digit == '*') {
       counter++;
-      tipo = OPR_TIMES;
-      return tipo;
+      digit = lexema[counter];
+      goto q73;
     }
     if (digit == '+') {
       counter++;
-      tipo = OPR_ADD;
-      return tipo;
+      digit = lexema[counter];
+      goto q69;
     }
     if (digit == '-') {
       counter++;
-      tipo = OPR_SUB;
-      return tipo;
+      digit = lexema[counter];
+      goto q71;
     }
     if (digit == '/') {
-      // b_uffer++;
-      goto q5;
+      counter++;
+      digit = lexema[counter];
+      goto q75;
     }
     if (digit == ';') {
       counter++;
-      tipo = OPR_PONTO_E_VIRGULA;
-      return tipo;
+      digit = lexema[counter];
+      goto q67;
     }
     if (digit == ',') {
-    counter++;
-    tipo = OPR_VIRGULA;
-    goto q65;
+      counter++;
+      digit = lexema[counter];
+      goto q65;
     }
     if (digit == '(') {
       counter++;
-      tipo = OPR_ABRE_PARENTESIS;
-      goto q65;
+      digit = lexema[counter];
+      goto q61;
     }
     if (digit == ')') {
       counter++;
-      tipo = OPR_FECHA_PARENTESIS;
-      return tipo;
+      digit = lexema[counter];
+      goto q63;
     }
     if (digit == '{') {
       counter++;
-      // buffser++; // FIXME: Só colocando isso por conta da identação que tem na outra linha
-      tipo = OPR_ABRE_CHAVES;
-      return tipo;
+      digit = lexema[counter];
+      goto q59;
     }
     if (digit == '}') {
       counter++;
-      tipo = OPR_FECHA_CHAVES;
-      return tipo;
+      digit = lexema[counter];
+      goto q57;
     }
     if (digit == '_') {
       counter++;
-      goto q2;
+      digit = lexema[counter];
+      goto q93;
     }
     if (digit == '=') {
       counter++;
-      goto q9;
+      digit = lexema[counter];
+      goto q89;
     }
     if (digit == '<') {
       counter++;
-      goto q7;
+      digit = lexema[counter];
+      goto q79;
     }
     if (digit == '>') {
       counter++;
-      goto q8;
+      digit = lexema[counter];
+      goto q85;
     }
     if (digit == 's') {
       counter++;
-      goto q16;
+      digit = lexema[counter];
+      goto q51;
     }
     if (digit == 'i') {
       counter++;
-      goto q17;
+      digit = lexema[counter];
+      goto q45;
     }
     if (digit == 'b') {
       counter++;
-      goto q18;
+      digit = lexema[counter];
+      goto q40;
     }
     if (digit == 'd') {
       counter++;
-      goto q19;
+      digit = lexema[counter];
+      goto q37;
     }
     if (digit == 't') {
       counter++;
-      goto q37;
+      digit = lexema[counter];
+      goto q32;
     }
     if (digit == 'f') {
       counter++;
-      goto q38;
+      digit = lexema[counter];
+      goto q26;
     }
     if (digit == 'e') {
       counter++;
-      goto q39;
+      digit = lexema[counter];
+      goto q21;
     }
     if (digit == 'w') {
       counter++;
-      goto q40;
+      digit = lexema[counter];
+      goto q15;
     }
     if (digit == 'v') {
       counter++;
-      goto q41;
+      digit = lexema[counter];
+      goto q10;
     }
     if (digit == 'p') {
       counter++;
-      goto q42;
+      digit = lexema[counter];
+      goto q1;
     }
-  q16:
-    if (digit == 'e') {
+    else {
+      goto erro;
+    }
+  q1:
+    if (digit == 'r') {
       counter++;
-      goto q26;
+      digit = lexema[counter];
+      goto q2;
     }
-  q17: // if
+  q2:
+    if (digit == 'i') {
+      counter++;
+      digit = lexema[counter];
+      goto q3;
+    }
+    if (digit == 'o') {
+      counter++;
+      digit = lexema[counter];
+      goto q7;
+    }
+  q3:
     if (digit == 'n') {
       counter++;
-      goto q30;
+      digit = lexema[counter];
+      goto q4;
     }
-    if (digit == 'f') {
+  q4:
+    if (digit == 't') {
       counter++;
-      tipo = OPR_IF;
-      goto q65;
+      digit = lexema[counter];
+      goto q5;
+    }
+  q5:
+    if (digit == ' ') {
+      goto q6;
+    } else {
+      goto erro;
+    }
+  q6: // print
+    return generateToken("<Palavra reservada ", lexema);
+  q7:
+    if (digit == 'c') {
+      counter++;
+      digit = lexema[counter];
+      goto q8;
+    }
+  q8:
+    if (digit == ' ') {
+      goto q9;
+    } else {
+      goto erro;
+    }
+  q9: // proc
+    return generateToken("<Palavra reservada ", lexema);
+  q10:
+    if (digit == 'o') {
+      counter++;
+      digit = lexema[counter];
+      goto q11;
+    }
+  q11:
+    if (digit == 'i') {
+      counter++;
+      digit = lexema[counter];
+      goto q12;
+    }
+  q12:
+    if (digit == 'd') {
+      counter++;
+      digit = lexema[counter];
+      goto q13;
+    }
+  q13:
+    if (digit == ' ') {
+      goto q14;
+    } else {
+      goto erro;
+    }
+  q14: // void
+    return generateToken("<Palavra reservada ", lexema);
+  q15:
+    if (digit == 'h') {
+      counter++;
+      digit = lexema[counter];
+      goto q16;
+    }
+  q16:
+    if (digit == 'i') {
+      counter++;
+      digit = lexema[counter];
+      goto q17;
+    }
+  q17:
+    if (digit == 'l') {
+      counter++;
+      digit = lexema[counter];
+      goto q18;
     }
   q18:
-    if (digit == 'o') {
+    if (digit == 'e') {
       counter++;
-      goto q33;
+      digit = lexema[counter];
+      goto q19;
     }
-  q19: // do
-    if (digit == 'o') {
+  q19:
+    if (digit == ' ') {
+      goto q20;
+    } else {
+      goto erro;
+    }
+  q20: // while
+    return generateToken("<Palavra reservada ", lexema);
+  q21:
+    if (digit == 'l') {
       counter++;
-      tipo = OPR_DO;
-      goto q65;
+      digit = lexema[counter];
+      goto q22;
     }
+  q22:
+    if (digit == 's') {
+      counter++;
+      digit = lexema[counter];
+      goto q23;
+    }
+  q23:
+    if (digit == 'e') {
+      counter++;
+      digit = lexema[counter];
+      goto q24;
+    }
+  q24:
+    if (digit == ' ') {
+      goto q25;
+    } else {
+      goto erro;
+    }
+  q25: // else
+    return generateToken("<Palavra reservada ", lexema);
   q26:
-    if (digit == 'm') {
+    if (digit == 'a') {
       counter++;
+      digit = lexema[counter];
       goto q27;
     }
   q27:
-    if (digit == 'i') {
+    if (digit == 'l') {
       counter++;
+      digit = lexema[counter];
       goto q28;
     }
-  q28: // semic
-    if (digit == 'c') {
+  q28:
+    if (digit == 's') {
       counter++;
-      tipo = OPR_SEMIC;
-      goto q65;
+      digit = lexema[counter];
+      goto q29;
     }
-  q30: // int
-    if (digit == 't') {
+  q29:
+    if (digit == 'e') {
       counter++;
-      tipo = OPR_INT;
-      goto q65;
+      digit = lexema[counter];
+      goto q30;
     }
-  q33:
-    if (digit == 'o') {
-      counter++;
-      goto q34;
+  q30:
+    if (digit == ' ') {
+      goto q31;
+    } else {
+      goto erro;
     }
-  q34: // bool
-    if (digit == 'l') {
-      counter++;
-      tipo = OPR_BOOL;
-      goto q65;
-    }
-  q37:
+  q31: // false
+    return generateToken("<Valor booleano ", lexema);
+  q32:
     if (digit == 'r') {
       counter++;
-      goto q43;
+      digit = lexema[counter];
+      goto q33;
+    }
+  q33:
+    if (digit == 'u') {
+      counter++;
+      digit = lexema[counter];
+      goto q34;
+    }
+  q34:
+    if (digit == 'e') {
+      counter++;
+      digit = lexema[counter];
+      goto q35;
+    }
+  q35:
+    if (digit == ' ') {
+      goto q36;
+    } else {
+      goto erro;
+    }
+  q36: // true
+    return generateToken("<Valor booleano ", lexema);
+  q37:
+    if (digit == 'o') {
+      counter++;
+      digit = lexema[counter];
+      goto q38;
     }
   q38:
-    if (digit == 'a') {
-      counter++;
-      goto q46;
+    if (digit == ' ') {
+      goto q39;
+    } else {
+      goto erro;
     }
-  q39:
-    if (digit == 'l') {
-      counter++;
-      goto q50;
-    }
+  q39: // do
+    return generateToken("<Palavra reservada ", lexema);
   q40:
-    if (digit == 'h') {
+    if (digit == 'o') {
       counter++;
-      goto q53;
+      digit = lexema[counter];
+      goto q41;
     }
   q41:
     if (digit == 'o') {
       counter++;
-      goto q57;
+      digit = lexema[counter];
+      goto q42;
     }
   q42:
-    if (digit == 'r') {
-      counter++;
-      goto q60;
-    }
-  q43:
-    if (digit == 'u') {
-      counter++;
-      goto q44;
-    }
-  q44: // true
-    if (digit == 'e') {
-      counter++;
-      tipo = OPR_TRUE;
-      goto q65;
-    }
-  q46:
     if (digit == 'l') {
       counter++;
-      goto q47;
+      digit = lexema[counter];
+      goto q43;
     }
-  q47:
-    if (digit == 's') {
+  q43:
+    if (digit == ' ') {
+      goto q44;
+    } else {
+      goto erro;
+    }
+  q44: // bool
+    return generateToken("<Palavra reservada ", lexema);
+  q45:
+    if (digit == 'n') {
       counter++;
+      digit = lexema[counter];
       goto q48;
     }
-  q48: // false
-    if (digit == 'e') {
+    if (digit == 'f') {
       counter++;
-      tipo = OPR_FALSE;
-      goto q65;
+      digit = lexema[counter];
+      goto q46;
     }
-  q50:
-    if (digit == 's') {
+  q46:
+    if (digit == ' ') {
+      goto q47;
+    } else {
+      goto erro;
+    }
+  q47: // if
+    return generateToken("<Palavra reservada ", lexema);
+  q48:
+    if (digit == 't') {
       counter++;
-      goto q51;
+      digit = lexema[counter];
+      goto q49;
     }
+  q49:
+    if (digit == ' ') {
+      goto q50;
+    } else {
+      goto erro;
+    }
+  q50: // int
+    return generateToken("<Palavra reservada ", lexema);
   q51:
     if (digit == 'e') {
       counter++;
-      tipo = OPR_ELSE;
-      goto q65;
+      digit = lexema[counter];
+      goto q52;
+    }
+  q52:
+    if (digit == 'm') {
+      counter++;
+      digit = lexema[counter];
+      goto q53;
     }
   q53:
     if (digit == 'i') {
       counter++;
+      digit = lexema[counter];
       goto q54;
     }
   q54:
-    if (digit == 'l') {
-      counter++;
-      goto q55;
-    }
-  q55: // while
-    if (digit == 'e') {
-      counter++;
-      tipo = OPR_WHILE;
-      goto q65;
-    }
-  q57:
-    if (digit == 'i') {
-      counter++;
-      goto q58;
-    }
-  q58: // void
-    if (digit == 'd') {
-      counter++;
-      tipo = OPR_VOID;
-      goto q65;
-    }
-  q60:
-    if (digit == 'i') {
-      counter++;
-      goto q61;
-    }
-    if (digit == 'o') {
-      counter++;
-      goto q64;
-    }
-  q61:
-    if (digit == 'n') {
-      counter++;
-      goto q62;
-    }
-  q62:
-    if (digit == 't') {
-      counter++;
-      tipo = OPR_PRINT;
-      goto q65;
-    }
-  q64:
     if (digit == 'c') {
       counter++;
-      tipo = OPR_PROC;
-      goto q65;
+      digit = lexema[counter];
+      goto q55;
     }
-  q65: // final
+  q55:
     if (digit == ' ') {
-      // busffer++; // TODO: Precisa desse buffer++?
-      return tipo;
+      goto q56;
     } else {
       goto erro;
     }
-  q9:
-    if (digit == '=') { // Igualdade
-      counter++;
-      tipo = OPR_EQUAL_TO;
-      return tipo;
+  q56: // semic
+    return generateToken("<Palavra reservada ", lexema);
+  q57:
+    if (digit == ' ') {
+      goto q58;
     } else {
-      // busffer++;
-      tipo = OPR_EQUAL;
-      goto q65;
+      goto erro;
     }
-  q7:
-    if (digit == '=') { // Menor ou igual
-      counter++;
-      tipo = OPR_LESS_OR_EQUAL_THAN;
-      goto q65;
+  q58: // }
+    return generateToken("<Delimitador fecha chaves ", lexema);
+  q59:
+    if (digit == ' ') {
+      goto q60;
+    } else {
+      goto erro;
     }
-    else if (digit == '>') { // DIferença
-      counter++;
-      tipo = OPR_DIFERENT;
-      goto q65;
+  q60: // {
+    return generateToken("<Delimitador abre chaves ", lexema);
+  q61:
+    if (digit == ' ') {
+      goto q62;
+    } else {
+      goto erro;
     }
-    else { // Menor que
-      counter++;
-      tipo = OPR_LESS_THAN;
-      goto q65;
+  q62: // (
+    return generateToken("<Delimitador abre parentesis ", lexema);
+  q63:
+    if (digit == ' ') {
+      goto q64;
+    } else {
+      goto erro;
     }
-  q8:
-    if (digit == '=') { // Maior ou igual
-      counter++;
-      tipo = OPR_HIGHER_OR_EQUAL_THAN;
-      goto q65;
-    }
-    else { // Maior que
-      counter++;
-      tipo = OPR_HIGHER_THAN;
-      goto q65;
-    }
-  q5:
-    counter++;
-
-    if (digit == '*') {
-      counter++;
+  q64: // )
+    return generateToken("<Delimitador fecha parentesis ", lexema);
+  q65:
+    if (digit == ' ') {
       goto q66;
+    } else {
+      goto erro;
     }
-
-    tipo = OPR_DIV;
-    
-    goto q65;
-  q66:
+  q66: // ,
+    return generateToken("<Delimitador virgula ", lexema);
+  q67:
+    if (digit == ' ') {
+      goto q68;
+    } else {
+      goto erro;
+    }
+  q68: // ;
+    return generateToken("<Delimitador ponto e virgula ", lexema);
+  q69:
+    if (digit == ' ') {
+      goto q70;
+    } else {
+      goto erro;
+    }
+  q70: // +
+    return generateToken("<Operador de adicao ", lexema);
+  q71:
+    if (digit == ' ') {
+      goto q72;
+    } else {
+      goto erro;
+    }
+  q72: // -
+    return generateToken("<Operador de subtracao ", lexema);
+  q73:
+    if (digit == ' ') {
+      goto q74;
+    } else {
+      goto erro;
+    }
+  q74: // *
+    return generateToken("<Operador de multiplicacao ", lexema);
+  q75:
+    if (digit == ' ') {
+      goto q76;
+    }
     if (digit == '*') {
       counter++;
-      goto q69;
+      digit = lexema[counter];
+      goto q77;
+    } else {
+      goto erro;
+    }
+  q76: // /
+    return generateToken("<Operador de divisao ", lexema);
+  q77:
+    if (digit == ' ') {
+      counter++;
+      digit = lexema[counter];
+      goto q78;
+    }
+  q78:
+    if (digit == ' ') {
+      counter++;
+      digit = lexema[counter];
+      goto q94;
     }
     if (
-        isalpha(digit) ||
-        isdigit(digit) ||
-        digit == ' ' ||
-        (digit == '\t') ||
-        (digit == '\r') ||
-        (digit == '\n')
-      ) {
+      isalpha(digit) ||
+      isalnum(digit) ||
+      digit == '(' ||
+      digit == ')' ||
+      digit == '*' ||
+      digit == '+' ||
+      digit == '-' ||
+      digit == ',' ||
+      digit == '/' ||
+      digit == ';' ||
+      digit == '<' ||
+      digit == '=' ||
+      digit == '>' ||
+      digit == '_' ||
+      digit == '}' ||
+      digit == '{'
+    ) {
       counter++;
-      goto q66;
+      digit = lexema[counter];
+      goto q78;
     }
-  q69:
+  q79:
+    if (digit == ' ') {
+      goto q80;
+    }
+    if (digit == '=') {
+      counter++;
+      digit = lexema[counter];
+      goto q83;
+    }
+    if (digit == '>') {
+      counter++;
+      digit = lexema[counter];
+      goto q81;
+    } else {
+      goto erro;
+    }
+  q80: // <
+    return generateToken("<Operador menor que ", lexema);
+  q81:
+    if (digit == ' ') {
+      goto q82;
+    } else {
+      goto erro;
+    }
+  q82: // <>
+    return generateToken("<Operador de diferenca ", lexema);
+  q83:
+    if (digit == ' ') {
+      goto q84;
+    } else {
+      goto erro;
+    }
+  q84: // <=
+    return generateToken("<Operador menor ou igual que ", lexema);
+  q85:
+    if (digit == '=') {
+      counter++;
+      digit = lexema[counter];
+      goto q87;
+    }
+    if (digit == ' ') {
+      goto q86;
+    } else {
+      goto erro;
+    }
+  q86: // >
+    return generateToken("<Operador maior que ", lexema);
+  q87:
+    if (digit == ' ') {
+      goto q88;
+    } else {
+      goto erro;
+    }
+  q88: // >=
+    return generateToken("<Operador maior ou igual que ", lexema);
+  q89:
+    if (digit == '=') {
+      counter++;
+      digit = lexema[counter];
+      goto q91;
+    }
+    if (digit == ' ') {
+      goto q90;
+    } else {
+      goto erro;
+    }
+  q90: // =
+    return generateToken("<Operador de atribuicao ", lexema);
+  q91:
+    if (digit == ' ') {
+      goto q92;
+    } else {
+      goto erro;
+    }
+  q92: // ==
+    return generateToken("<Operador de igualdade ", lexema);
+  q93:
+    if (digit == ' ') {
+      goto q98;
+    }
+    if (isalpha(digit)) {
+      counter++;
+      digit = lexema[counter];
+      goto q93;
+    } else {
+      goto erro;
+    }
+  q94: // duas saidas para *, vai dar merda
+    if (digit == ' ') {
+      counter++;
+      digit = lexema[counter];
+      goto q95;
+    }
+    if (
+      isalpha(digit) ||
+      isalnum(digit) ||
+      digit == '(' ||
+      digit == ')' ||
+      digit == '*' ||
+      digit == '+' ||
+      digit == '-' ||
+      digit == ',' ||
+      digit == '/' ||
+      digit == ';' ||
+      digit == '<' ||
+      digit == '=' ||
+      digit == '>' ||
+      digit == '_' ||
+      digit == '}' ||
+      digit == '{'
+    ) {
+      counter++;
+      digit = lexema[counter];
+      goto q78;
+    }
+    if (digit == ' ') {
+      counter++;
+      digit = lexema[counter];
+      goto q95;
+    }
+  q95:
+    if (digit == '*') {
+      counter++;
+      digit = lexema[counter];
+      goto q96;
+    }
+  q96:
     if (digit == '/') {
       counter++;
-      tipo = OPR_COMENT;
-      return tipo;
+      digit = lexema[counter];
+      goto q97;
     }
-  q71:
+  q97:
+    if (digit == ' ') {
+      goto q101;
+    } else {
+      goto erro;
+    }
+  q98: // Identificador
+    return generateToken("<Identificador ", lexema);
+  q99:
     if (isdigit(digit)) {
       counter++;
-      goto q71;
+      digit = lexema[counter];
+      goto q99;
     }
-
-    tipo = VALOR_NUMERICO;
-    goto q65;
-  q2: // identificador
-    if (isalpha(digit) || isdigit(digit)) { // FIXME: Assim, uma var _123 pode ser aceita
-      counter++;
-      tipo = IDENTIFICADOR;
-      goto q2;
+    if (digit == ' ') {
+      goto q100;
+    } else {
+      goto erro;
     }
-    goto q65;
-  erro: // erro
-    tipo = ERRO;
-    return tipo;
+  q100: // Digitos
+    return generateToken("<Operador numerico ", lexema);
+  q101: // Comentario
+    return generateToken("<Comentário ", lexema);
+  erro: // Erro léxico
+    return generateToken("<Erro lexico ", lexema);
 }
