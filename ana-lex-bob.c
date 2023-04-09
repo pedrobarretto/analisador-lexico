@@ -32,7 +32,7 @@ int main() {
   char *token;
   char delimitador[] = " ";
   int in_comment = 0; // variável para indicar se está dentro de um comentário ou não
-  char comment[20] = ""; // variável temporária para armazenar comentários que não terminam em "*/"
+  char comment[50] = ""; // variável temporária para armazenar comentários que não terminam em "*/"
 
   token = strtok(palavra, delimitador);
   
@@ -56,6 +56,9 @@ int main() {
       if (strstr(token, "*/") == NULL) {
         strcpy(comment, token); // armazena o comentário na variável temporária
       }
+    } else if (comment[0] != '\0') { // se estamos dentro de um comentário não finalizado
+      strcat(comment, " ");
+      strcat(comment, token);
     } else {
       sprintf(lexema, "%s ", token);
       Token tk = scanner(lexema);
@@ -67,10 +70,19 @@ int main() {
     }
     token = strtok(NULL, delimitador);
   }
+  
+  // verifica se o comentário ainda não finalizado
+  if (comment[0] != '\0') {
+    in_comment = 0;
+    strcat(comment, " "); // adiciona espaço em branco após comentário não finalizado
+    Token tk = scanner(comment);
+    printf("%s, %s>\n", tk.string, tk.lexema);
+    free(tk.string);
+    free(tk.lexema);
+  }
 
   return 0;
 }
-
 Token scanner(char lexema[20]) {
   char digit = lexema[0];
   int counter = 0;
