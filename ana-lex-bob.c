@@ -13,22 +13,19 @@ typedef struct {
 
 Token generateToken(const char* str, const char* lex);
 
-Token generateToken(const char* str, const char* lex) {
+Token generateToken(const char* str, const char* lexema) {
   Token token;
   int str_len = strlen(str);
-  int lex_len = strlen(lex);
   token.string = malloc(str_len + 1);
-  token.lexema = malloc(lex_len + 1);
   strcpy(token.string, str);
-  strcpy(token.lexema, lex);
+  token.lexema = lexema ? strdup(lexema) : NULL; // se lexema for nulo, usa NULL como padrão
   return token;
 }
 
 Token scanner(char lexema[20]);
 
 int main() {
-  char palavra[50] = "if 2345 true ( /* ** _x int * */ _x ) >= ";
-  // char palavra[50] = "/* ** _x int * */ ";
+  char palavra[100] = "if 2345 true ( /* ** _x int * */ _x ) >= semic proc void + - / <> ";
   char lexema[20];
   char *token;
   char delimitador[] = " ";
@@ -45,7 +42,11 @@ int main() {
         in_comment = 0;
         strcat(comment, " "); // adiciona espaço em branco após "*/"
         Token tk = scanner(comment);
-        printf("%s, %s>\n", tk.string, tk.lexema);
+        if (tk.lexema) {
+          printf("%s, %s>\n", tk.string, tk.lexema);
+        } else {
+          printf("%s>\n", tk.string);
+        }
         free(tk.string);
         free(tk.lexema);
         comment[0] = '\0';
@@ -64,7 +65,11 @@ int main() {
       sprintf(lexema, "%s ", token);
       Token tk = scanner(lexema);
       if (strcmp(token, "*/") != 0) {
-        printf("%s, %s>\n", tk.string, tk.lexema);
+        if (tk.lexema) {
+          printf("%s, %s>\n", tk.string, tk.lexema);
+        } else {
+          printf("%s>\n", tk.string);
+        }
         free(tk.string);
         free(tk.lexema);
       }
@@ -84,6 +89,7 @@ int main() {
 
   return 0;
 }
+
 Token scanner(char lexema[20]) {
   char digit = lexema[0];
   int counter = 0;
@@ -253,7 +259,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q6: // print
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<PRINT", NULL);
   q7:
     if (digit == 'c') {
       counter++;
@@ -267,7 +273,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q9: // proc
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<PROC", NULL);
   q10:
     if (digit == 'o') {
       counter++;
@@ -293,7 +299,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q14: // void
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<VOID", NULL);
   q15:
     if (digit == 'h') {
       counter++;
@@ -325,7 +331,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q20: // while
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<WHILE", NULL);
   q21:
     if (digit == 'l') {
       counter++;
@@ -351,7 +357,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q25: // else
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<ELSE", NULL);
   q26:
     if (digit == 'a') {
       counter++;
@@ -383,7 +389,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q31: // false
-    return generateToken("<Valor booleano ", lexema);
+    return generateToken("<FALSE", NULL);
   q32:
     if (digit == 'r') {
       counter++;
@@ -409,7 +415,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q36: // true
-    return generateToken("<Valor booleano ", lexema);
+    return generateToken("<TRUE", NULL);
   q37:
     if (digit == 'o') {
       counter++;
@@ -423,7 +429,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q39: // do
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<DO", NULL);
   q40:
     if (digit == 'o') {
       counter++;
@@ -449,7 +455,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q44: // bool
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<BOOL", NULL);
   q45:
     if (digit == 'n') {
       counter++;
@@ -468,7 +474,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q47: // if
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<IF", NULL);
   q48:
     if (digit == 't') {
       counter++;
@@ -482,7 +488,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q50: // int
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<INT", NULL);
   q51:
     if (digit == 'e') {
       counter++;
@@ -514,7 +520,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q56: // semic
-    return generateToken("<Palavra reservada ", lexema);
+    return generateToken("<SEMIC", NULL);
   q57:
     if (digit == ' ') {
       goto q58;
@@ -522,7 +528,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q58: // }
-    return generateToken("<Delimitador fecha chaves ", lexema);
+    return generateToken("<FECHA_CHAVES", NULL);
   q59:
     if (digit == ' ') {
       goto q60;
@@ -530,7 +536,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q60: // {
-    return generateToken("<Delimitador abre chaves ", lexema);
+    return generateToken("<ABRE_CHAVES", NULL);
   q61:
     if (digit == ' ') {
       goto q62;
@@ -538,7 +544,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q62: // (
-    return generateToken("<Delimitador abre parentesis ", lexema);
+    return generateToken("<ABRE_PARENTESIS", NULL);
   q63:
     if (digit == ' ') {
       goto q64;
@@ -546,7 +552,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q64: // )
-    return generateToken("<Delimitador fecha parentesis ", lexema);
+    return generateToken("<FECHA_PARENTESIS", NULL);
   q65:
     if (digit == ' ') {
       goto q66;
@@ -554,7 +560,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q66: // ,
-    return generateToken("<Delimitador virgula ", lexema);
+    return generateToken("<VIRGULA", NULL);
   q67:
     if (digit == ' ') {
       goto q68;
@@ -562,7 +568,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q68: // ;
-    return generateToken("<Delimitador ponto e virgula ", lexema);
+    return generateToken("<PONTO_E_VIRGULA", NULL);
   q69:
     if (digit == ' ') {
       goto q70;
@@ -570,7 +576,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q70: // +
-    return generateToken("<Operador de adicao ", lexema);
+    return generateToken("<OPR_ADICAO", NULL);
   q71:
     if (digit == ' ') {
       goto q72;
@@ -578,7 +584,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q72: // -
-    return generateToken("<Operador de subtracao ", lexema);
+    return generateToken("<OPR_SUBTRACAO", NULL);
   q73:
     if (digit == ' ') {
       goto q74;
@@ -586,7 +592,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q74: // *
-    return generateToken("<Operador de multiplicacao ", lexema);
+    return generateToken("<OPR_MULTIPLICACAO", NULL);
   q75:
     if (digit == ' ') {
       goto q76;
@@ -599,12 +605,14 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q76: // /
-    return generateToken("<Operador de divisao ", lexema);
+    return generateToken("<OPR_DIVISAO", NULL);
   q77:
     if (digit == ' ') {
       counter++;
       digit = lexema[counter];
       goto q78;
+    } else {
+      goto erro;
     }
   q78:
     if (
@@ -647,7 +655,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q80: // <
-    return generateToken("<Operador menor que ", lexema);
+    return generateToken("<MENOR_QUE", NULL);
   q81:
     if (digit == ' ') {
       goto q82;
@@ -655,7 +663,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q82: // <>
-    return generateToken("<Operador de diferenca ", lexema);
+    return generateToken("<DIFERENCA", NULL);
   q83:
     if (digit == ' ') {
       goto q84;
@@ -663,7 +671,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q84: // <=
-    return generateToken("<Operador menor ou igual que ", lexema);
+    return generateToken("<MENOR_OU_IGUAL_QUE", NULL);
   q85:
     if (digit == '=') {
       counter++;
@@ -676,7 +684,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q86: // >
-    return generateToken("<Operador maior que ", lexema);
+    return generateToken("<MAIOR_QUE", NULL);
   q87:
     if (digit == ' ') {
       goto q88;
@@ -684,7 +692,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q88: // >=
-    return generateToken("<Operador maior ou igual que ", lexema);
+    return generateToken("<MAIOR_OU_IGUAL_QUE", NULL);
   q89:
     if (digit == '=') {
       counter++;
@@ -697,7 +705,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q90: // =
-    return generateToken("<Operador de atribuicao ", lexema);
+    return generateToken("<ATRIBUICAO", NULL);
   q91:
     if (digit == ' ') {
       goto q92;
@@ -705,7 +713,7 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q92: // ==
-    return generateToken("<Operador de igualdade ", lexema);
+    return generateToken("<IGUALDADE", NULL);
   q93:
     if (digit == ' ') {
       goto q98;
@@ -737,14 +745,15 @@ Token scanner(char lexema[20]) {
       digit == '>' ||
       digit == '_' ||
       digit == '}' ||
-      digit == '{'
+      digit == '{' ||
+      digit == '/'
     ) {
       counter++;
       digit = lexema[counter];
       goto q78;
     }
   q95:
-    if (digit == '/') {
+    if (digit == '*' || digit == ' ') {
       counter++;
       digit = lexema[counter];
       goto q96;
@@ -764,7 +773,8 @@ Token scanner(char lexema[20]) {
       digit == '_' ||
       digit == '}' ||
       digit == '{' ||
-      digit == '*'
+      digit == '*' ||
+      digit == '/'
     ) {
       counter++;
       digit = lexema[counter];
@@ -773,15 +783,47 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q96:
-    if (digit == ' ') {
+    if (digit == '*') {
+      counter++;
+      digit = lexema[counter];
+      goto q96;
+    }
+    if (digit == '/') {
+      counter++;
+      digit = lexema[counter];
       goto q97;
+    }
+    if (
+      isalpha(digit) ||
+      isalnum(digit) ||
+      digit == '(' ||
+      digit == ')' ||
+      digit == '+' ||
+      digit == '-' ||
+      digit == ',' ||
+      digit == ';' ||
+      digit == '<' ||
+      digit == '=' ||
+      digit == '>' ||
+      digit == '_' ||
+      digit == '}' ||
+      digit == '{' ||
+      digit == ' '
+    ) {
+      counter++;
+      digit = lexema[counter];
+      goto q95;
     } else {
       goto erro;
     }
-  q97: // Comentario
-    return generateToken("<Comentário ", lexema);
+  q97:
+    if (digit == ' ') {
+      goto q101;
+    } else {
+      goto erro;
+    }
   q98: // Identificador
-    return generateToken("<Identificador ", lexema);
+    return generateToken("<IDENTIFICADOR ", lexema);
   q99:
     if (isdigit(digit)) {
       counter++;
@@ -794,7 +836,9 @@ Token scanner(char lexema[20]) {
       goto erro;
     }
   q100: // Digitos
-    return generateToken("<Operador numerico ", lexema);
+    return generateToken("<NUM ", lexema);
+  q101: // Comentario
+    return generateToken("<COMENTARIO ", lexema);
   erro: // Erro léxico
-    return generateToken("<Erro lexico ", lexema);
+    return generateToken("<ERRO LEXICO ", lexema);
 }
