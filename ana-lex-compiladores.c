@@ -17,43 +17,43 @@ typedef struct
   char *lexema;
 } Token;
 
-Token *generateToken(const char *str, const char *lexema, Token *token);
+Token generateToken(const char *str, const char *lexema);
 
-Token *generateToken(const char *str, const char *lexema, Token *token)
+Token generateToken(const char *str, const char *lexema)
 {
+  Token token;
   int str_len = strlen(str);
-  token->string = malloc(str_len + 1); // access the string field using ->
-  strcpy(token->string, str);
-  token->lexema = lexema ? strdup(lexema) : NULL; // access the lexema field using ->
+  token.string = malloc(str_len + 1);
+  strcpy(token.string, str);
+  token.lexema = lexema ? strdup(lexema) : NULL;
   return token;
 }
 
-Token scanner(char lexema[100], int *counter, Token *token);
+Token scanner(char lexema[100], int *counter);
 
 int main()
 {
   char palavra[100] = "if 2345 true ( /* ** _x int */ _x ) >= ";
-  Token *token = NULL;
   int counter = 0;
 
   while (palavra[counter] != '\0')
   {
-    scanner(palavra, &counter, token);
+    Token token = scanner(palavra, &counter);
 
-    if (token->lexema)
+    if (token.lexema)
     {
-      printf("LEXEMA: %s, TOKEN: %s\n", token->lexema, token->string);
+      printf("LEXEMA: %s, TOKEN: %s\n", token.lexema, token.string);
     }
     else
     {
-      printf("TOKEN: %s\n", token->string);
+      printf("TOKEN: %s\n", token.string);
     }
   }
 
   return 0;
 }
 
-Token scanner(char lexema[100], int *counter, Token *token)
+Token scanner(char lexema[100], int *counter)
 {
   char digit = lexema[*counter];
   printf("Valor de counter no comeco: %d\n", *counter);
@@ -262,7 +262,7 @@ q5:
     goto erro;
   }
 q6: // print
-  *token = generateToken("PRINT", NULL, token);
+  return generateToken("PRINT", NULL);
 q7:
   if (digit == 'c')
   {
@@ -280,7 +280,7 @@ q8:
     goto erro;
   }
 q9: // proc
-  *token = generateToken("PROC", NULL, token);
+  return generateToken("PROC", NULL);
 q10:
   if (digit == 'o')
   {
@@ -312,7 +312,7 @@ q13:
     goto erro;
   }
 q14: // void
-  *token = generateToken("VOID", NULL, token);
+  return generateToken("VOID", NULL);
 q15:
   if (digit == 'h')
   {
@@ -351,7 +351,7 @@ q19:
     goto erro;
   }
 q20: // while
-  *token = generateToken("WHILE", NULL, token);
+  return generateToken("WHILE", NULL);
 q21:
   if (digit == 'l')
   {
@@ -383,7 +383,7 @@ q24:
     goto erro;
   }
 q25: // else
-  *token = generateToken("ELSE", NULL, token);
+  return generateToken("ELSE", NULL);
 q26:
   if (digit == 'a')
   {
@@ -422,7 +422,7 @@ q30:
     goto erro;
   }
 q31: // false
-  *token = generateToken("FALSE", NULL, token);
+  return generateToken("FALSE", NULL);
 q32:
   if (digit == 'r')
   {
@@ -454,7 +454,7 @@ q35:
     goto erro;
   }
 q36: // true
-  *token = generateToken("TRUE", NULL, token);
+  return generateToken("TRUE", NULL);
 q37:
   if (digit == 'o')
   {
@@ -472,7 +472,7 @@ q38:
     goto erro;
   }
 q39: // do
-  *token = generateToken("DO", NULL, token);
+  return generateToken("DO", NULL);
 q40:
   if (digit == 'o')
   {
@@ -504,7 +504,7 @@ q43:
     goto erro;
   }
 q44: // bool
-  *token = generateToken("BOOL", NULL, token);
+  return generateToken("BOOL", NULL);
 q45:
   if (digit == 'n')
   {
@@ -531,8 +531,11 @@ q46:
     goto erro;
   }
 q47: // if
-  printf("dentro de q47\n");
-  *token = generateToken("IF", NULL, token);
+  printf("dentro de q47 IF\n");
+  printf("Valor de digit: %c\n", digit == ' ' ? '1' : '2');
+  return generateToken("IF", NULL);
+  // printf("TOKEN IF\n");
+  // goto q0;
 q48:
   if (digit == 't')
   {
@@ -550,7 +553,7 @@ q49:
     goto erro;
   }
 q50: // int
-  *token = generateToken("INT", NULL, token);
+  return generateToken("INT", NULL);
 q51:
   if (digit == 'e')
   {
@@ -589,7 +592,7 @@ q55:
     goto erro;
   }
 q56: // semic
-  *token = generateToken("SEMIC", NULL, token);
+  return generateToken("SEMIC", NULL);
 q57:
   if (digit == ' ')
   {
@@ -600,7 +603,7 @@ q57:
     goto erro;
   }
 q58: // }
-  *token = generateToken("FECHA_CHAVES", NULL, token);
+  return generateToken("FECHA_CHAVES", NULL);
 q59:
   if (digit == ' ')
   {
@@ -611,7 +614,7 @@ q59:
     goto erro;
   }
 q60: // {
-  *token = generateToken("ABRE_CHAVES", NULL, token);
+  return generateToken("ABRE_CHAVES", NULL);
 q61:
   if (digit == ' ')
   {
@@ -622,7 +625,7 @@ q61:
     goto erro;
   }
 q62: // (
-  *token = generateToken("ABRE_PARENTESIS", NULL, token);
+  return generateToken("ABRE_PARENTESIS", NULL);
 q63:
   if (digit == ' ')
   {
@@ -633,7 +636,7 @@ q63:
     goto erro;
   }
 q64: // )
-  *token = generateToken("FECHA_PARENTESIS", NULL, token);
+  return generateToken("FECHA_PARENTESIS", NULL);
 q65:
   if (digit == ' ')
   {
@@ -644,7 +647,7 @@ q65:
     goto erro;
   }
 q66: // ,
-  *token = generateToken("VIRGULA", NULL, token);
+  return generateToken("VIRGULA", NULL);
 q67:
   if (digit == ' ')
   {
@@ -655,7 +658,7 @@ q67:
     goto erro;
   }
 q68: // ;
-  *token = generateToken("PONTO_E_VIRGULA", NULL, token);
+  return generateToken("PONTO_E_VIRGULA", NULL);
 q69:
   if (digit == ' ')
   {
@@ -666,7 +669,7 @@ q69:
     goto erro;
   }
 q70: // +
-  *token = generateToken("OPR_ADICAO", NULL, token);
+  return generateToken("OPR_ADICAO", NULL);
 q71:
   if (digit == ' ')
   {
@@ -677,7 +680,7 @@ q71:
     goto erro;
   }
 q72: // -
-  *token = generateToken("OPR_SUBTRACAO", NULL, token);
+  return generateToken("OPR_SUBTRACAO", NULL);
 q73:
   if (digit == ' ')
   {
@@ -688,7 +691,7 @@ q73:
     goto erro;
   }
 q74: // *
-  *token = generateToken("OPR_MULTIPLICACAO", NULL, token);
+  return generateToken("OPR_MULTIPLICACAO", NULL);
 q75:
   if (digit == ' ')
   {
@@ -705,7 +708,7 @@ q75:
     goto erro;
   }
 q76: // /
-  *token = generateToken("OPR_DIVISAO", NULL, token);
+  return generateToken("OPR_DIVISAO", NULL);
 q77:
   if (digit == ' ')
   {
@@ -763,7 +766,7 @@ q79:
     goto erro;
   }
 q80: // <
-  *token = generateToken("MENOR_QUE", NULL, token);
+  return generateToken("MENOR_QUE", NULL);
 q81:
   if (digit == ' ')
   {
@@ -774,7 +777,7 @@ q81:
     goto erro;
   }
 q82: // <>
-  *token = generateToken("DIFERENCA", NULL, token);
+  return generateToken("DIFERENCA", NULL);
 q83:
   if (digit == ' ')
   {
@@ -785,7 +788,7 @@ q83:
     goto erro;
   }
 q84: // <=
-  *token = generateToken("MENOR_OU_IGUAL_QUE", NULL, token);
+  return generateToken("MENOR_OU_IGUAL_QUE", NULL);
 q85:
   if (digit == '=')
   {
@@ -802,7 +805,7 @@ q85:
     goto erro;
   }
 q86: // >
-  *token = generateToken("MAIOR_QUE", NULL, token);
+  return generateToken("MAIOR_QUE", NULL);
 q87:
   if (digit == ' ')
   {
@@ -813,7 +816,7 @@ q87:
     goto erro;
   }
 q88: // >=
-  *token = generateToken("MAIOR_OU_IGUAL_QUE", NULL, token);
+  return generateToken("MAIOR_OU_IGUAL_QUE", NULL);
 q89:
   if (digit == '=')
   {
@@ -830,7 +833,7 @@ q89:
     goto erro;
   }
 q90: // =
-  *token = generateToken("ATRIBUICAO", NULL, token);
+  return generateToken("ATRIBUICAO", NULL);
 q91:
   if (digit == ' ')
   {
@@ -841,7 +844,7 @@ q91:
     goto erro;
   }
 q92: // ==
-  *token = generateToken("IGUALDADE", NULL, token);
+  return generateToken("IGUALDADE", NULL);
 q93:
   if (digit == ' ')
   {
@@ -966,7 +969,7 @@ q97:
     goto erro;
   }
 q98: // Identificador
-  *token = generateToken("IDENTIFICADOR ", lexema, token);
+  return generateToken("IDENTIFICADOR ", lexema);
 q99:
   if (isdigit(digit))
   {
@@ -983,9 +986,10 @@ q99:
     goto erro;
   }
 q100: // Digitos
-  *token = generateToken("NUM ", lexema, token);
+  return generateToken("NUM ", lexema);
 q101: // Comentario
-  *token = generateToken("COMENTARIO ", lexema, token);
+  return generateToken("COMENTARIO ", lexema);
 erro: // Erro léxico
-  *token = generateToken("ERRO_LEXICO ", lexema, token);
+  printf("Dentro de erro, valor de digit: %c\n", digit == ' ' ? '1' : '2');
+  return generateToken("ERRO_LEXICO ", lexema);
 }
