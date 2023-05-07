@@ -29,12 +29,33 @@ Token generateToken(const char *str, const char *lexema)
   return token;
 }
 
-Token scanner(char lexema[20]);
+Token scanner(char *lexema);
 
 int main()
 {
-  // Entrada de teste
-  char palavra[100] = "if 2345 true ( /* ** _x int */ _x ) >= ";
+  // Abre o arquivo "entrada.txt" para leitura
+  FILE *entrada;
+  entrada = fopen("entrada.txt", "r");
+
+  if (entrada == NULL)
+  {
+    printf("Error opening file.\n");
+    return 1;
+  }
+
+  // Obtém o tamanho do arquivo
+  fseek(entrada, 0L, SEEK_END);
+  int tamanho = ftell(entrada);
+  rewind(entrada);
+
+  // Lê o conteúdo do arquivo para uma variável "palavra"
+  char *palavra = (char *)malloc(sizeof(char) * (tamanho + 1));
+  fread(palavra, sizeof(char), tamanho, entrada);
+  palavra[tamanho] = '\0';
+
+  // Fecha o arquivo "entrada.txt"
+  fclose(entrada);
+
   char lexema[20];
   char *token;
   char delimitador[] = " ";
@@ -70,12 +91,12 @@ int main()
         Token tk = scanner(comment);
         if (tk.lexema)
         {
-          printf("%s, %s>\n", tk.string, tk.lexema);
+          // printf("%s, %s>\n", tk.string, tk.lexema);
           fprintf(fp, "%s, %s>\n", tk.string, tk.lexema);
         }
         else
         {
-          printf("%s>\n", tk.string);
+          // printf("%s>\n", tk.string);
           fprintf(fp, "%s>\n", tk.string);
         }
         free(tk.string);
@@ -111,12 +132,12 @@ int main()
       {
         if (tk.lexema)
         {
-          printf("%s, %s>\n", tk.string, tk.lexema);
+          // printf("%s, %s>\n", tk.string, tk.lexema);
           fprintf(fp, "%s, %s>\n", tk.string, tk.lexema);
         }
         else
         {
-          printf("%s>\n", tk.string);
+          // printf("%s>\n", tk.string);
           fprintf(fp, "%s>\n", tk.string);
         }
         free(tk.string);
@@ -132,7 +153,7 @@ int main()
     in_comment = 0;
     strcat(comment, " "); // Adiciona espaço em branco após comentário não finalizado
     Token tk = scanner(comment);
-    printf("%s, %s>\n", tk.string, tk.lexema);
+    // printf("%s, %s>\n", tk.string, tk.lexema);
     free(tk.string);
     free(tk.lexema);
   }
@@ -140,12 +161,27 @@ int main()
   return 0;
 }
 
-Token scanner(char lexema[20])
+Token scanner(char *lexema)
 {
   char digit = lexema[0];
   int counter = 0;
 
+  while ((digit == ' ') || (digit == '\t') || (digit == '\r') || (digit == '\n'))
+  {
+    counter++;
+    digit = lexema[counter];
+    printf("Digito do if: %c\n", digit);
+  }
+  printf("Digito: %c\n", digit);
+
 q0:
+  if (digit == ' ')
+  {
+    printf("Dentro de q0 espaco\n");
+    counter++;
+    digit = lexema[counter];
+    goto q0;
+  }
   if (isdigit(digit))
   {
     counter++;
