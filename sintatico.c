@@ -966,6 +966,7 @@ q93:
 q94:
   if (digit == '*' || digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n') // Precisa dos espaços extras?
   {
+    // TODO: Removi esse incremento e os comentários passaram. Avaliar depois
     // (*counter)++;
     // digit = lexema[*counter];
     goto q95;
