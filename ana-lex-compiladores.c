@@ -166,18 +166,18 @@ Token scanner(char *lexema)
   char digit = lexema[0];
   int counter = 0;
 
-  while ((digit == ' ') || (digit == '\t') || (digit == '\r') || (digit == '\n'))
-  {
-    counter++;
-    digit = lexema[counter];
-    printf("Digito do if: %c\n", digit);
-  }
-  printf("Digito: %c\n", digit);
+  // while ((digit == ' ') || (digit == '\t') || (digit == '\r') || (digit == '\n'))
+  // {
+  //   counter++;
+  //   digit = lexema[counter];
+  //   printf("Digito do if: %c\n", digit);
+  // }
+  // printf("Digito: %c\n", digit);
 
 q0:
-  if (digit == ' ')
+  if (digit == ' ' || (digit == '\t') || (digit == '\r') || (digit == '\n'))
   {
-    printf("Dentro de q0 espaco\n");
+    printf("Digito do q0: %c\n", digit);
     counter++;
     digit = lexema[counter];
     goto q0;
@@ -1060,7 +1060,7 @@ q96:
       digit == '_' ||
       digit == '}' ||
       digit == '{' ||
-      digit == ' ')
+      digit == ' ' || (digit == '\t') || (digit == '\r') || (digit == '\n'))
   {
     counter++;
     digit = lexema[counter];

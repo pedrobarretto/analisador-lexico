@@ -1,1 +1,2 @@
-void _umProc 
+void _umProc ( int _a ) 
+    int  _a ; 

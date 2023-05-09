@@ -14,27 +14,22 @@
 char *lookahead; /* Excepcionalmente variavel global */
 
 int match(char *t, char *palavra, int *counter);
-// int parseInit();
-// int parseType();
-// int parseIdentifier();
-// int parseOpenParentesis();
-// int parseFuncParameters();
-// int parseCloseParantesis();
+
 int parseVoid(char *palavra, int *counter);
+int parseComment(char *palavra, int *counter);
+int parseParams(char *palavra, int *counter);
+int parseInt(char *palavra, int *counter);
 
 char *scanner(char *lexema, int *counter);
 
 int match(char *t, char *palavra, int *counter)
 {
-  printf("lookahead: %s\n", lookahead);
-  printf("match param: %s\n", t);
-  printf("match param: %i\n", *counter);
+  // printf("lookahead: %s ", lookahead);
+  // printf("   t: %s\n", t);
 
   if (lookahead == t)
   {
-    printf("Before new scanner...\n");
     lookahead = scanner(palavra, counter);
-    printf("After new scanner...\n");
     printf("Match!\n");
     return (1);
   }
@@ -42,9 +37,36 @@ int match(char *t, char *palavra, int *counter)
   return (0);
 }
 
-int parseVoid(char *palavra, int *counter) {
+int parseParams(char *palavra, int *counter)
+{
+  match("ABRE_PARENTESIS", palavra, counter);
+  if (lookahead == "INT")
+  {
+    match("INT", palavra, counter);
+  }
+  match("IDENTIFICADOR", palavra, counter);
+  match("FECHA_PARENTESIS", palavra, counter);
+}
+
+int parseInt(char *palavra, int *counter)
+{
+  match("INT", palavra, counter);
+  match("IDENTIFICADOR", palavra, counter);
+  match("PONTO_E_VIRGULA", palavra, counter);
+}
+
+int parseComment(char *palavra, int *counter)
+{
+  match("COMENTARIO", palavra, counter);
+}
+
+int parseVoid(char *palavra, int *counter)
+{
   match("VOID", palavra, counter);
   match("IDENTIFICADOR", palavra, counter);
+  parseParams(palavra, counter);
+  parseInt(palavra, counter);
+  // parseComment(palavra, counter);
 }
 
 int main()
@@ -59,25 +81,20 @@ int main()
     return 1;
   }
 
-  // Obtém o tamanho do arquivo
   fseek(entrada, 0L, SEEK_END);
   int tamanho = ftell(entrada);
   rewind(entrada);
 
-  // Lê o conteúdo do arquivo para uma variável "palavra"
   char *palavra = (char *)malloc(sizeof(char) * (tamanho + 1));
   fread(palavra, sizeof(char), tamanho, entrada);
   palavra[tamanho] = '\0';
 
-  // Fecha o arquivo "entrada.txt"
   fclose(entrada);
 
   int counter = 0;
-  printf("OPA!\n");
   lookahead = scanner(palavra, &counter);
-  printf("OPA 2!\n");
   parseVoid(palavra, &counter);
-  
+
   return 0;
 }
 
@@ -85,7 +102,20 @@ char *scanner(char *lexema, int *counter)
 {
   char digit = lexema[*counter];
 
+  // while (digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n')
+  // {
+  //   printf("Digito do q0: %c\n", digit);
+  //   (*counter)++;
+  //   digit = lexema[*counter];
+  // }
+
 q0:
+  if (digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n')
+  {
+    (*counter)++;
+    digit = lexema[*counter];
+    goto q0;
+  }
   if (isdigit(digit))
   {
     (*counter)++;
@@ -795,7 +825,7 @@ q78:
       digit == '_' ||
       digit == '}' ||
       digit == '{' ||
-      digit == ' ')
+      digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n')
   {
     (*counter)++;
     digit = lexema[*counter];
@@ -934,10 +964,10 @@ q93:
     goto erro;
   }
 q94:
-  if (digit == '*' || digit == ' ')
+  if (digit == '*' || digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n') // Precisa dos espaços extras?
   {
-    (*counter)++;
-    digit = lexema[*counter];
+    // (*counter)++;
+    // digit = lexema[*counter];
     goto q95;
   }
   if (
@@ -962,7 +992,7 @@ q94:
     goto q78;
   }
 q95:
-  if (digit == '*' || digit == ' ')
+  if (digit == '*' || digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n')
   {
     (*counter)++;
     digit = lexema[*counter];
@@ -1022,7 +1052,7 @@ q96:
       digit == '_' ||
       digit == '}' ||
       digit == '{' ||
-      digit == ' ')
+      digit == ' ' || (digit == '\t') || (digit == '\r') || (digit == '\n'))
   {
     (*counter)++;
     digit = lexema[*counter];
