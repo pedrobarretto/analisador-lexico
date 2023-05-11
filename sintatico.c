@@ -11,6 +11,79 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+typedef enum {
+  PRINT,
+  PROC,
+  VOID,
+  WHILE,
+  ELSE,
+  FALSE,
+  TRUE,
+  DO,
+  BOOL,
+  IF,
+  INT,
+  SEMIC,
+  FECHA_CHAVES,
+  ABRE_CHAVES,
+  ABRE_PARENTESIS,
+  FECHA_PARENTESIS,
+  VIRGULA,
+  PONTO_E_VIRGULA,
+  OPR_ADICAO,
+  OPR_SUBTRACAO,
+  OPR_MULTIPLICACAO,
+  OPR_DIVISAO,
+  MENOR_QUE,
+  DIFERENCA,
+  MENOR_OU_IGUAL_QUE,
+  MAIOR_QUE,
+  MAIOR_OU_IGUAL_QUE,
+  ATRIBUICAO,
+  IGUALDADE,
+  IDENTIFICADOR,
+  NUM,
+  COMENTARIO,
+  ERRO_LEXICO
+} Token;
+
+char *tokenToStr[] = {
+  "MENOR_QUE",
+  "PRINT",
+  "PROC",
+  "VOID",
+  "WHILE",
+  "ELSE",
+  "FALSE",
+  "TRUE",
+  "DO",
+  "BOOL",
+  "IF",
+  "INT",
+  "SEMIC",
+  "FECHA_CHAVES",
+  "ABRE_CHAVES",
+  "ABRE_PARENTESIS",
+  "FECHA_PARENTESIS",
+  "VIRGULA",
+  "PONTO_E_VIRGULA",
+  "OPR_ADICAO",
+  "OPR_SUBTRACAO",
+  "OPR_MULTIPLICACAO",
+  "OPR_DIVISAO",
+  "MENOR_QUE",
+  "DIFERENCA",
+  "MENOR_OU_IGUAL_QUE",
+  "MAIOR_QUE",
+  "MAIOR_OU_IGUAL_QUE",
+  "ATRIBUICAO",
+  "IGUALDADE",
+  "IDENTIFICADOR",
+  "NUM",
+  "COMENTARIO",
+  "ERRO_LEXICO"
+};
+
 char *lookahead; /* Excepcionalmente variavel global */
 
 int match(char *t, char *palavra, int *counter);
@@ -39,31 +112,31 @@ int match(char *t, char *palavra, int *counter)
 
 int parseParams(char *palavra, int *counter)
 {
-  match("ABRE_PARENTESIS", palavra, counter);
-  if (lookahead == "INT")
+  match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
+  if (lookahead == tokenToStr[INT])
   {
-    match("INT", palavra, counter);
+    match(tokenToStr[INT], palavra, counter);
   }
-  match("IDENTIFICADOR", palavra, counter);
-  match("FECHA_PARENTESIS", palavra, counter);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
 }
 
 int parseInt(char *palavra, int *counter)
 {
-  match("INT", palavra, counter);
-  match("IDENTIFICADOR", palavra, counter);
-  match("PONTO_E_VIRGULA", palavra, counter);
+  match(tokenToStr[INT], palavra, counter);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
 }
 
 int parseComment(char *palavra, int *counter)
 {
-  match("COMENTARIO", palavra, counter);
+  match(tokenToStr[COMENTARIO], palavra, counter);
 }
 
 int parseVoid(char *palavra, int *counter)
 {
-  match("VOID", palavra, counter);
-  match("IDENTIFICADOR", palavra, counter);
+  match(tokenToStr[VOID], palavra, counter);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter);
   parseParams(palavra, counter);
   parseInt(palavra, counter);
   // parseComment(palavra, counter);
@@ -316,7 +389,7 @@ q5:
     goto erro;
   }
 q6: // print
-  return "PRINT";
+  return tokenToStr[PRINT];
 q7:
   if (digit == 'c')
   {
@@ -336,7 +409,7 @@ q8:
     goto erro;
   }
 q9: // proc
-  return "PROC";
+  return tokenToStr[PROC];
 q10:
   if (digit == 'o')
   {
@@ -370,7 +443,7 @@ q13:
     goto erro;
   }
 q14: // void
-  return "VOID";
+  return tokenToStr[VOID];
 q15:
   if (digit == 'h')
   {
@@ -411,7 +484,7 @@ q19:
     goto erro;
   }
 q20: // while
-  return "WHILE";
+  return tokenToStr[WHILE];
 q21:
   if (digit == 'l')
   {
@@ -445,7 +518,7 @@ q24:
     goto erro;
   }
 q25: // else
-  return "ELSE";
+  return tokenToStr[ELSE];
 q26:
   if (digit == 'a')
   {
@@ -486,7 +559,7 @@ q30:
     goto erro;
   }
 q31: // false
-  return "FALSE";
+  return tokenToStr[FALSE];
 q32:
   if (digit == 'r')
   {
@@ -520,7 +593,7 @@ q35:
     goto erro;
   }
 q36: // true
-  return "TRUE";
+  return tokenToStr[TRUE];
 q37:
   if (digit == 'o')
   {
@@ -540,7 +613,7 @@ q38:
     goto erro;
   }
 q39: // do
-  return "DO";
+  return tokenToStr[DO];
 q40:
   if (digit == 'o')
   {
@@ -574,7 +647,7 @@ q43:
     goto erro;
   }
 q44: // bool
-  return "BOOL";
+  return tokenToStr[BOOL];
 q45:
   if (digit == 'n')
   {
@@ -600,7 +673,7 @@ q46:
     goto erro;
   }
 q47: // if
-  return "IF";
+  return tokenToStr[IF];
 q48:
   if (digit == 't')
   {
@@ -620,7 +693,7 @@ q49:
     goto erro;
   }
 q50: // int
-  return "INT";
+  return tokenToStr[INT];
 q51:
   if (digit == 'e')
   {
@@ -661,7 +734,7 @@ q55:
     goto erro;
   }
 q56: // semic
-  return "SEMIC";
+  return tokenToStr[SEMIC];
 q57:
   if (digit == ' ')
   {
@@ -674,7 +747,7 @@ q57:
     goto erro;
   }
 q58: // }
-  return "FECHA_CHAVES";
+  return tokenToStr[FECHA_CHAVES];
 q59:
   if (digit == ' ')
   {
@@ -687,7 +760,7 @@ q59:
     goto erro;
   }
 q60: // {
-  return "ABRE_CHAVES";
+  return tokenToStr[ABRE_CHAVES];
 q61:
   if (digit == ' ')
   {
@@ -700,7 +773,7 @@ q61:
     goto erro;
   }
 q62: // (
-  return "ABRE_PARENTESIS";
+  return tokenToStr[ABRE_PARENTESIS];
 q63:
   if (digit == ' ')
   {
@@ -713,7 +786,7 @@ q63:
     goto erro;
   }
 q64: // )
-  return "FECHA_PARENTESIS";
+  return tokenToStr[FECHA_PARENTESIS];
 q65:
   if (digit == ' ')
   {
@@ -726,7 +799,7 @@ q65:
     goto erro;
   }
 q66: // ,
-  return "VIRGULA";
+  return tokenToStr[VIRGULA];
 q67:
   if (digit == ' ')
   {
@@ -737,7 +810,7 @@ q67:
     goto erro;
   }
 q68: // ;
-  return "PONTO_E_VIRGULA";
+  return tokenToStr[PONTO_E_VIRGULA];
 q69:
   if (digit == ' ')
   {
@@ -750,7 +823,7 @@ q69:
     goto erro;
   }
 q70: // +
-  return "OPR_ADICAO";
+  return tokenToStr[OPR_ADICAO];
 q71:
   if (digit == ' ')
   {
@@ -763,7 +836,7 @@ q71:
     goto erro;
   }
 q72: // -
-  return "OPR_SUBTRACAO";
+  return tokenToStr[OPR_SUBTRACAO];
 q73:
   if (digit == ' ')
   {
@@ -776,7 +849,7 @@ q73:
     goto erro;
   }
 q74: // *
-  return "OPR_MULTIPLICACAO";
+  return tokenToStr[OPR_MULTIPLICACAO];
 q75:
   if (digit == ' ')
   {
@@ -795,7 +868,7 @@ q75:
     goto erro;
   }
 q76: // /
-  return "OPR_DIVISAO";
+  return tokenToStr[OPR_DIVISAO];
 q77:
   if (digit == ' ')
   {
@@ -855,7 +928,7 @@ q79:
     goto erro;
   }
 q80: // <
-  return "MENOR_QUE";
+  return tokenToStr[MENOR_QUE];
 q81:
   if (digit == ' ')
   {
@@ -868,7 +941,7 @@ q81:
     goto erro;
   }
 q82: // <>
-  return "DIFERENCA";
+  return tokenToStr[DIFERENCA];
 q83:
   if (digit == ' ')
   {
@@ -881,7 +954,7 @@ q83:
     goto erro;
   }
 q84: // <=
-  return "MENOR_OU_IGUAL_QUE";
+  return tokenToStr[MENOR_OU_IGUAL_QUE];
 q85:
   if (digit == '=')
   {
@@ -900,7 +973,7 @@ q85:
     goto erro;
   }
 q86: // >
-  return "MAIOR_QUE";
+  return tokenToStr[MAIOR_QUE];
 q87:
   if (digit == ' ')
   {
@@ -913,7 +986,7 @@ q87:
     goto erro;
   }
 q88: // >=
-  return "MAIOR_OU_IGUAL_QUE";
+  return tokenToStr[MAIOR_OU_IGUAL_QUE];
 q89:
   if (digit == '=')
   {
@@ -932,7 +1005,7 @@ q89:
     goto erro;
   }
 q90: // =
-  return "ATRIBUICAO";
+  return tokenToStr[ATRIBUICAO];
 q91:
   if (digit == ' ')
   {
@@ -945,7 +1018,7 @@ q91:
     goto erro;
   }
 q92: // ==
-  return "IGUALDADE";
+  return tokenToStr[IGUALDADE];
 q93:
   if (digit == ' ')
   {
@@ -1075,7 +1148,7 @@ q97:
     goto erro;
   }
 q98: // Identificador
-  return "IDENTIFICADOR";
+  return tokenToStr[IDENTIFICADOR];
 q99:
   if (isdigit(digit))
   {
@@ -1094,9 +1167,9 @@ q99:
     goto erro;
   }
 q100: // Digitos
-  return "NUM";
+  return tokenToStr[NUM];
 q101: // Comentario
-  return "COMENTARIO";
+  return tokenToStr[COMENTARIO];
 erro: // Erro léxico
-  return "ERRO LEXICO";
+  return tokenToStr[ERRO_LEXICO];
 }
