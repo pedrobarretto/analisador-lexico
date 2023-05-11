@@ -1,4 +1,6 @@
 void _umProc ( int _a ) { 
-    int  _a ; 
+    int _a ; 
     _a = 1 ; 
-}
+    _a = 12 ; 
+    proc _umProc ( 10 ) ; 
+} 

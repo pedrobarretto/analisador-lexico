@@ -11,9 +11,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-typedef enum {
-  PRINT,
-  PROC,
+typedef enum
+{
+  _PRINT,
+  _PROC,
   VOID,
   WHILE,
   ELSE,
@@ -43,60 +44,66 @@ typedef enum {
   IGUALDADE,
   IDENTIFICADOR,
   NUM,
-  COMENTARIO,
+  _COMENTARIO,
   ERRO_LEXICO
 } Token;
 
 char *tokenToStr[] = {
-  "PRINT",
-  "PROC",
-  "VOID",
-  "WHILE",
-  "ELSE",
-  "FALSE",
-  "TRUE",
-  "DO",
-  "BOOL",
-  "IF",
-  "INT",
-  "SEMIC",
-  "FECHA_CHAVES",
-  "ABRE_CHAVES",
-  "ABRE_PARENTESIS",
-  "FECHA_PARENTESIS",
-  "VIRGULA",
-  "PONTO_E_VIRGULA",
-  "OPR_ADICAO",
-  "OPR_SUBTRACAO",
-  "OPR_MULTIPLICACAO",
-  "OPR_DIVISAO",
-  "MENOR_QUE",
-  "DIFERENCA",
-  "MENOR_OU_IGUAL_QUE",
-  "MAIOR_QUE",
-  "MAIOR_OU_IGUAL_QUE",
-  "ATRIBUICAO",
-  "IGUALDADE",
-  "IDENTIFICADOR",
-  "NUM",
-  "COMENTARIO",
-  "ERRO_LEXICO"
-};
+    "PRINT",
+    "PROC",
+    "VOID",
+    "WHILE",
+    "ELSE",
+    "FALSE",
+    "TRUE",
+    "DO",
+    "BOOL",
+    "IF",
+    "INT",
+    "SEMIC",
+    "FECHA_CHAVES",
+    "ABRE_CHAVES",
+    "ABRE_PARENTESIS",
+    "FECHA_PARENTESIS",
+    "VIRGULA",
+    "PONTO_E_VIRGULA",
+    "OPR_ADICAO",
+    "OPR_SUBTRACAO",
+    "OPR_MULTIPLICACAO",
+    "OPR_DIVISAO",
+    "MENOR_QUE",
+    "DIFERENCA",
+    "MENOR_OU_IGUAL_QUE",
+    "MAIOR_QUE",
+    "MAIOR_OU_IGUAL_QUE",
+    "ATRIBUICAO",
+    "IGUALDADE",
+    "IDENTIFICADOR",
+    "NUM",
+    "COMENTARIO",
+    "ERRO_LEXICO"};
 
 char *lookahead; /* Excepcionalmente variavel global */
 
 int match(char *t, char *palavra, int *counter);
 
-int parseInit(char *palavra, int *counter);
+int S(char *palavra, int *counter);
 
-int parseSubroutine(char *palavra, int *counter);
+int DFUNC(char *palavra, int *counter);
 
-int parseComment(char *palavra, int *counter);
+int COMENTARIO(char *palavra, int *counter);
 int PARAMSF(char *palavra, int *counter);
 int TIPO(char *palavra, int *counter);
 int DVAR(char *palavra, int *counter);
 int DVAR_LIST(char *palavra, int *counter);
-int parseBlock(char *palavra, int *counter);
+int BLOCO(char *palavra, int *counter);
+int COMANDO_COMPOSTO(char *palavra, int *counter);
+int COMANDO(char *palavra, int *counter);
+int ATRIB(char *palavra, int *counter);
+int PROC(char *palavra, int *counter);
+int COND(char *palavra, int *counter);
+int REPET(char *palavra, int *counter);
+int PRINT(char *palavra, int *counter);
 
 char *scanner(char *lexema, int *counter);
 
@@ -122,97 +129,169 @@ int PARAMSF(char *palavra, int *counter)
   if (lookahead == tokenToStr[INT])
   {
     match(tokenToStr[INT], palavra, counter);
-  } else if (lookahead == tokenToStr[BOOL]) {
-    match(tokenToStr[BOOL], palavra, counter);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter);
   }
-  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  else if (lookahead == tokenToStr[BOOL])
+  {
+    match(tokenToStr[BOOL], palavra, counter);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  }
 
-  if (lookahead == tokenToStr[VIRGULA]) {
+  // Params do proc
+  // if (lookahead == tokenToStr[NUM])
+  // {
+  //   match(tokenToStr[NUM], palavra, counter);
+  // }
+  // else if (lookahead == tokenToStr[TRUE])
+  // {
+  //   match(tokenToStr[TRUE], palavra, counter);
+  // }
+  // else if (lookahead == tokenToStr[FALSE])
+  // {
+  //   match(tokenToStr[FALSE], palavra, counter);
+  // }
+
+  if (lookahead == tokenToStr[VIRGULA])
+  {
     match(tokenToStr[VIRGULA], palavra, counter);
     PARAMSF(palavra, counter);
-  } else {
+  }
+  else
+  {
     return 1;
   }
 }
 
 int TIPO(char *palavra, int *counter)
 {
-  if (lookahead == tokenToStr[INT]) {
+  if (lookahead == tokenToStr[INT])
+  {
     match(tokenToStr[INT], palavra, counter);
-  } else if (lookahead == tokenToStr[VOID]) {
+  }
+  else if (lookahead == tokenToStr[VOID])
+  {
     match(tokenToStr[VOID], palavra, counter);
-  } else if (lookahead == tokenToStr[BOOL]) {
+  }
+  else if (lookahead == tokenToStr[BOOL])
+  {
     match(tokenToStr[BOOL], palavra, counter);
-  } else if (lookahead == tokenToStr[SEMIC]) {
+  }
+  else if (lookahead == tokenToStr[SEMIC])
+  {
     match(tokenToStr[BOOL], palavra, counter);
   }
 }
 
-int DVAR(char *palavra, int *counter) {
+int DVAR(char *palavra, int *counter)
+{
   TIPO(palavra, counter);
   match(tokenToStr[IDENTIFICADOR], palavra, counter);
   match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
 }
 
-int DVAR_LIST(char *palavra, int *counter) { // FIXME: Func está com problema para sair da recursão
-  DVAR(palavra, counter);
+int DVAR_LIST(char *palavra, int *counter)
+{
+  if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
+  {
+    DVAR(palavra, counter);
+  }
 
-  if (lookahead == tokenToStr[IDENTIFICADOR]) {
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
-    match(tokenToStr[ATRIBUICAO], palavra, counter);
-
+  if (lookahead == tokenToStr[IDENTIFICADOR])
+  {
     // Atribuição de valores a variáveis declaradas previamente
-    if (lookahead == tokenToStr[NUM]) {
-      match(tokenToStr[NUM], palavra, counter);
-      match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
-      DVAR_LIST(palavra, counter);
-    } else if (lookahead == tokenToStr[TRUE]) {
-      match(tokenToStr[TRUE], palavra, counter);
-      match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
-      DVAR_LIST(palavra, counter);
-    } else if (lookahead == tokenToStr[FALSE]) {
-      match(tokenToStr[FALSE], palavra, counter);
-      match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
-      DVAR_LIST(palavra, counter);
-    }
-  } else if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL]) {
+    ATRIB(palavra, counter);
     DVAR_LIST(palavra, counter);
-  } else {
+  }
+  else if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
+  {
+    DVAR_LIST(palavra, counter);
+  }
+  else
+  {
     return 0;
   }
 }
 
-int parseComment(char *palavra, int *counter)
+int COMENTARIO(char *palavra, int *counter)
 {
-  match(tokenToStr[COMENTARIO], palavra, counter);
+  match(tokenToStr[_COMENTARIO], palavra, counter);
 }
 
-int parseBlock(char *palavra, int *counter) {
-  match(tokenToStr[ABRE_CHAVES], palavra, counter);
+int ATRIB(char *palavra, int *counter)
+{
+  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  match(tokenToStr[ATRIBUICAO], palavra, counter);
+  if (lookahead == tokenToStr[NUM])
+  {
+    match(tokenToStr[NUM], palavra, counter);
+  }
+  else if (lookahead == tokenToStr[FALSE])
+  {
+    match(tokenToStr[FALSE], palavra, counter);
+  }
+  else if (lookahead == tokenToStr[BOOL])
+  {
+    match(tokenToStr[BOOL], palavra, counter);
+  }
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+}
 
+int PROC(char *palavra, int *counter)
+{
+  match(tokenToStr[_PROC], palavra, counter);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  if (lookahead == tokenToStr[ABRE_PARENTESIS])
+  {
+    match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
+    PARAMSF(palavra, counter);
+    match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
+  }
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+}
+
+int BLOCO(char *palavra, int *counter)
+{
   // Bloco aqui
-  DVAR_LIST(palavra, counter);
-
-  match(tokenToStr[FECHA_CHAVES], palavra, counter);
+  if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL] || lookahead == tokenToStr[IDENTIFICADOR])
+  {
+    DVAR_LIST(palavra, counter);
+    BLOCO(palavra, counter);
+  }
+  if (lookahead == tokenToStr[_PROC])
+  {
+    PROC(palavra, counter);
+    BLOCO(palavra, counter);
+  }
 }
 
-int parseSubroutine(char *palavra, int *counter) {
-  if (lookahead == tokenToStr[SEMIC]) {
+int DFUNC(char *palavra, int *counter)
+{
+  if (lookahead == tokenToStr[SEMIC])
+  {
     TIPO(palavra, counter);
     match(tokenToStr[IDENTIFICADOR], palavra, counter);
-    parseBlock(palavra, counter);
-  } else {
+    match(tokenToStr[ABRE_CHAVES], palavra, counter);
+    BLOCO(palavra, counter);
+    match(tokenToStr[FECHA_CHAVES], palavra, counter);
+  }
+  else if (lookahead == tokenToStr[VOID] || lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
+  {
     TIPO(palavra, counter);
     match(tokenToStr[IDENTIFICADOR], palavra, counter);
     match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
     PARAMSF(palavra, counter);
     match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
-    parseBlock(palavra, counter);
+    match(tokenToStr[ABRE_CHAVES], palavra, counter);
+    BLOCO(palavra, counter);
+    match(tokenToStr[FECHA_CHAVES], palavra, counter);
+
+    // TODO: if lookahead != SEMIC, validar outras funcs.
   }
 }
 
-int parseInit(char *palavra, int *counter) {
-  parseSubroutine(palavra, counter);
+int S(char *palavra, int *counter)
+{
+  DFUNC(palavra, counter);
 }
 
 int main()
@@ -239,7 +318,7 @@ int main()
 
   int counter = 0;
   lookahead = scanner(palavra, &counter);
-  parseInit(palavra, &counter);
+  S(palavra, &counter);
 
   return 0;
 }
@@ -247,13 +326,6 @@ int main()
 char *scanner(char *lexema, int *counter)
 {
   char digit = lexema[*counter];
-
-  // while (digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n')
-  // {
-  //   printf("Digito do q0: %c\n", digit);
-  //   (*counter)++;
-  //   digit = lexema[*counter];
-  // }
 
 q0:
   if (digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n')
@@ -462,7 +534,7 @@ q5:
     goto erro;
   }
 q6: // print
-  return tokenToStr[PRINT];
+  return tokenToStr[_PRINT];
 q7:
   if (digit == 'c')
   {
@@ -482,7 +554,7 @@ q8:
     goto erro;
   }
 q9: // proc
-  return tokenToStr[PROC];
+  return tokenToStr[_PROC];
 q10:
   if (digit == 'o')
   {
@@ -1242,7 +1314,7 @@ q99:
 q100: // Digitos
   return tokenToStr[NUM];
 q101: // Comentario
-  return tokenToStr[COMENTARIO];
+  return tokenToStr[_COMENTARIO];
 erro: // Erro léxico
   return tokenToStr[ERRO_LEXICO];
 }
