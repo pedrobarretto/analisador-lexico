@@ -121,8 +121,8 @@ char *scanner(char *lexema, int *counter);
 
 int match(char *t, char *palavra, int *counter)
 {
-  printf("lookahead: %s ", lookahead);
-  printf(" t: %s\n", t);
+  // printf("lookahead: %s ", lookahead);
+  // printf(" t: %s\n", t);
   if (lookahead == t)
   {
     lookahead = scanner(palavra, counter);
@@ -219,11 +219,9 @@ int DVAR(char *palavra, int *counter)
   if (lookahead == tokenToStr[VIRGULA])
   {
     match(tokenToStr[VIRGULA], palavra, counter);
-    // printf("Rodando agora IDENTIFICADOR_LIST\n");
     IDENTIFICADOR_LIST(palavra, counter);
   }
 
-  // printf("Final da lista de vars\n");
   match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
 }
 
@@ -231,20 +229,14 @@ int DVAR_LIST(char *palavra, int *counter)
 {
   if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
   {
-    // printf("DVAR_LIST -> lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL]\n");
     DVAR(palavra, counter);
   }
   else if (lookahead == tokenToStr[IDENTIFICADOR])
   {
-    // printf("DVAR_LIST -> lookahead == tokenToStr[IDENTIFICADOR]\n");
     // Atribuição de valores a variáveis declaradas previamente
     ATRIB(palavra, counter);
     DVAR_LIST(palavra, counter);
   }
-  // else if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
-  // {
-  //   DVAR_LIST(palavra, counter);
-  // }
   else
   {
     return 0;
@@ -351,13 +343,34 @@ int PROC(char *palavra, int *counter)
   match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
 }
 
+int PRINT(char *palavra, int *counter)
+{
+  match(tokenToStr[_PRINT], palavra, counter);
+  match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+}
+
+int REPET(char *palavra, int *counter)
+{
+  match(tokenToStr[DO], palavra, counter);
+  match(tokenToStr[ABRE_CHAVES], palavra, counter);
+  BLOCO(palavra, counter);
+  match(tokenToStr[FECHA_CHAVES], palavra, counter);
+  match(tokenToStr[WHILE], palavra, counter);
+  match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
+  EXPR(palavra, counter);
+  match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+}
+
 int BLOCO(char *palavra, int *counter)
 {
   // Lista de váriáveis + atribuição
   if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL] || lookahead == tokenToStr[IDENTIFICADOR])
   {
     DVAR_LIST(palavra, counter);
-    // printf("Chamando bloco apos DVAR_LIST\n");
     BLOCO(palavra, counter);
   }
   // Proc
@@ -372,10 +385,20 @@ int BLOCO(char *palavra, int *counter)
     COND(palavra, counter);
     BLOCO(palavra, counter);
   }
+  // Print
+  else if (lookahead == tokenToStr[_PRINT])
+  {
+    PRINT(palavra, counter);
+    BLOCO(palavra, counter);
+  }
+  // Do while
+  else if (lookahead == tokenToStr[DO])
+  {
+    REPET(palavra, counter);
+    BLOCO(palavra, counter);
+  }
   else
   {
-    // lookahead = scanner(palavra, counter);
-    // printf("Bloco vazio, atualizando lookahead: %s\n", lookahead);
     return 0;
   }
 }
@@ -470,9 +493,7 @@ int DFUNC(char *palavra, int *counter)
     TIPO(palavra, counter);
     match(tokenToStr[IDENTIFICADOR], palavra, counter);
     match(tokenToStr[ABRE_CHAVES], palavra, counter);
-    // printf("Comeco do primeiro bloco do semic\n");
     BLOCO(palavra, counter);
-    // printf("Final do primeiro bloco do semic, checando fecha chaves...\n");
     match(tokenToStr[FECHA_CHAVES], palavra, counter);
   }
   else if (lookahead == tokenToStr[VOID] || lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
