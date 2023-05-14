@@ -46,7 +46,8 @@ typedef enum
   IDENTIFICADOR,
   NUM,
   _COMENTARIO,
-  ERRO_LEXICO
+  ERRO_LEXICO,
+  END_OF_FILE
 } Token;
 
 char *tokenToStr[] = {
@@ -82,16 +83,10 @@ char *tokenToStr[] = {
     "IDENTIFICADOR",
     "NUM",
     "COMENTARIO",
-    "ERRO_LEXICO"};
+    "ERRO_LEXICO",
+    "FIM DO ARQUIVO"};
 
 char *lookahead; /* Excepcionalmente variavel global */
-
-void handleInterrupt(int signal)
-{
-  printf("Program interrupted.\n");
-  // You can perform any necessary cleanup here
-  exit(0); // Uncomment this line if you want to exit immediately
-}
 
 int match(char *t, char *palavra, int *counter);
 
@@ -130,13 +125,13 @@ int match(char *t, char *palavra, int *counter)
     {
       COMENTARIO(palavra, counter);
     }
-    printf("Match!\n");
-    return (1);
+    // printf("Match!\n");
+    return 1;
   }
 
-  lookahead = scanner(palavra, counter);
+  // lookahead = scanner(palavra, counter);
   printf("Not Match!\n");
-  return (0);
+  return 0;
 }
 
 int PARAMSF(char *palavra, int *counter)
@@ -518,7 +513,7 @@ int DFUNC(char *palavra, int *counter)
 
 int S(char *palavra, int *counter)
 {
-  DFUNC(palavra, counter);
+  return DFUNC(palavra, counter);
 }
 
 int main()
@@ -545,7 +540,17 @@ int main()
 
   int counter = 0;
   lookahead = scanner(palavra, &counter);
-  S(palavra, &counter);
+  int result = S(palavra, &counter);
+  // printf("Result: %i\n", result);
+  // printf("lookahead: %s \n", lookahead);
+  if (lookahead == tokenToStr[ERRO_LEXICO])
+  {
+    printf("Erro sintático...\n");
+  }
+  else
+  {
+    printf("Programa sem erros sintáticos...\n");
+  }
 
   return 0;
 }
@@ -553,6 +558,11 @@ int main()
 char *scanner(char *lexema, int *counter)
 {
   char digit = lexema[*counter];
+
+  if (digit == EOF || digit == '\x0')
+  {
+    return tokenToStr[END_OF_FILE];
+  }
 
 q0:
   if (digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n')
