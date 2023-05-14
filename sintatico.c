@@ -116,8 +116,6 @@ char *scanner(char *lexema, int *counter);
 
 int match(char *t, char *palavra, int *counter)
 {
-  // printf("lookahead: %s ", lookahead);
-  // printf(" t: %s\n", t);
   if (lookahead == t)
   {
     lookahead = scanner(palavra, counter);
@@ -129,11 +127,14 @@ int match(char *t, char *palavra, int *counter)
     return 1;
   }
 
+  printf("lookahead: %s ", lookahead);
+  printf(" t: %s\n", t);
   // lookahead = scanner(palavra, counter);
   printf("Not Match!\n");
   return 0;
 }
 
+// PARAMS -> IDENTIFICADOR | NUMERO | TIPO
 int PARAMSF(char *palavra, int *counter)
 {
   // Params do proc
@@ -172,6 +173,7 @@ int PARAMSF(char *palavra, int *counter)
   }
 }
 
+// TIPO -> int, void, bool, semic
 int TIPO(char *palavra, int *counter)
 {
   if (lookahead == tokenToStr[INT])
@@ -190,12 +192,9 @@ int TIPO(char *palavra, int *counter)
   {
     match(tokenToStr[BOOL], palavra, counter);
   }
-  else if (lookahead == tokenToStr[SEMIC])
-  {
-    match(tokenToStr[BOOL], palavra, counter);
-  }
 }
 
+// IDENTIFICADOR_LIST -> IDENTIFICADOR | IDENTIFICADOR, IDENTIFICADOR_LIST
 int IDENTIFICADOR_LIST(char *palavra, int *counter)
 {
   match(tokenToStr[IDENTIFICADOR], palavra, counter);
@@ -206,6 +205,7 @@ int IDENTIFICADOR_LIST(char *palavra, int *counter)
   }
 }
 
+// DVAR -> TIPO IDENTIFICADOR_LIST ;
 int DVAR(char *palavra, int *counter)
 {
   TIPO(palavra, counter);
@@ -220,6 +220,7 @@ int DVAR(char *palavra, int *counter)
   match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
 }
 
+// DVAR_LIST -> DVAR | DVAR DVAR_LIST | ATRIB | e
 int DVAR_LIST(char *palavra, int *counter)
 {
   if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
@@ -228,7 +229,6 @@ int DVAR_LIST(char *palavra, int *counter)
   }
   else if (lookahead == tokenToStr[IDENTIFICADOR])
   {
-    // Atribuição de valores a variáveis declaradas previamente
     ATRIB(palavra, counter);
     DVAR_LIST(palavra, counter);
   }
@@ -238,6 +238,7 @@ int DVAR_LIST(char *palavra, int *counter)
   }
 }
 
+// COMENTARIO -> /* [a, z] [1, 9]  */
 int COMENTARIO(char *palavra, int *counter)
 {
   match(tokenToStr[_COMENTARIO], palavra, counter);
@@ -524,7 +525,7 @@ int main()
 
   if (entrada == NULL)
   {
-    printf("Error opening file.\n");
+    printf("Erro ao tentar abrir arquivo...\n");
     return 1;
   }
 
@@ -545,11 +546,11 @@ int main()
   // printf("lookahead: %s \n", lookahead);
   if (lookahead == tokenToStr[ERRO_LEXICO])
   {
-    printf("Erro sintático...\n");
+    printf("Programa apresenta erros sintáticos...\n");
   }
   else
   {
-    printf("Programa sem erros sintáticos...\n");
+    printf("Programa sem erros sintáticos!\n");
   }
 
   return 0;
