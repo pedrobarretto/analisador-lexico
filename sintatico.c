@@ -46,7 +46,7 @@ typedef enum
   IDENTIFICADOR,
   NUM,
   _COMENTARIO,
-  ERRO_LEXICO
+  ERRO_SINTATICO
 } Token;
 
 char *tokenToStr[] = {
@@ -82,160 +82,171 @@ char *tokenToStr[] = {
     "IDENTIFICADOR",
     "NUM",
     "COMENTARIO",
-    "ERRO_LEXICO"};
+    "ERRO_SINTATICO"};
 
 char *lookahead; /* Excepcionalmente variavel global */
 
-void handleInterrupt(int signal)
+int match(char *t, char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int S(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int DFUNC(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int COMENTARIO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int PARAMSF(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int TIPO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int DVAR(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int DVAR_LIST(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int BLOCO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int COMANDO_COMPOSTO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int COMANDO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int ATRIB(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int PROC(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int COND(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int REPET(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int PRINT(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int EXPR(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int RELACAO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int EXPR_SIMP(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int IDENTIFICADOR_LIST(char *palavra, int *counter, int *errorCounter, char *palavraDoErro);
+int trataErro();
+
+int trataErro()
 {
-  printf("Program interrupted.\n");
-  // You can perform any necessary cleanup here
-  exit(0); // Uncomment this line if you want to exit immediately
+  printf("Erro Léxico\n");
 }
-
-int match(char *t, char *palavra, int *counter);
-
-int S(char *palavra, int *counter);
-
-int DFUNC(char *palavra, int *counter);
-
-int COMENTARIO(char *palavra, int *counter);
-int PARAMSF(char *palavra, int *counter);
-int TIPO(char *palavra, int *counter);
-int DVAR(char *palavra, int *counter);
-int DVAR_LIST(char *palavra, int *counter);
-int BLOCO(char *palavra, int *counter);
-int COMANDO_COMPOSTO(char *palavra, int *counter);
-int COMANDO(char *palavra, int *counter);
-int ATRIB(char *palavra, int *counter);
-int PROC(char *palavra, int *counter);
-int COND(char *palavra, int *counter);
-int REPET(char *palavra, int *counter);
-int PRINT(char *palavra, int *counter);
-int EXPR(char *palavra, int *counter);
-int RELACAO(char *palavra, int *counter);
-int EXPR_SIMP(char *palavra, int *counter);
-int IDENTIFICADOR_LIST(char *palavra, int *counter);
 
 char *scanner(char *lexema, int *counter);
 
-int match(char *t, char *palavra, int *counter)
+int match(char *t, char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  // printf("lookahead: %s ", lookahead);
-  // printf(" t: %s\n", t);
   if (lookahead == t)
   {
     lookahead = scanner(palavra, counter);
     if (lookahead == tokenToStr[_COMENTARIO])
     {
-      COMENTARIO(palavra, counter);
+      COMENTARIO(palavra, counter, errorCounter, palavraDoErro);
     }
-    printf("Match!\n");
+    // printf("Match!\n");
     return (1);
   }
 
-  lookahead = scanner(palavra, counter);
+  printf("Atualizando erros...\n");
+  errorCounter = errorCounter + 1;
+  palavraDoErro = lookahead;
+
+  printf("lookahead: %s ", lookahead);
+  printf(" t: %s\n", t);
+  printf(" errorCounter: %ls\n", errorCounter);
+
+  // lookahead = scanner(palavra, counter);
+  lookahead = tokenToStr[ERRO_SINTATICO];
   printf("Not Match!\n");
   return (0);
 }
 
-int PARAMSF(char *palavra, int *counter)
+int PARAMSF(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   // Params do proc
   if (lookahead == tokenToStr[NUM])
   {
-    match(tokenToStr[NUM], palavra, counter);
+    match(tokenToStr[NUM], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[TRUE])
   {
-    match(tokenToStr[TRUE], palavra, counter);
+    match(tokenToStr[TRUE], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[FALSE])
   {
-    match(tokenToStr[FALSE], palavra, counter);
+    match(tokenToStr[FALSE], palavra, counter, errorCounter, palavraDoErro);
   }
 
   if (lookahead == tokenToStr[INT])
   {
-    match(tokenToStr[INT], palavra, counter);
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
+    match(tokenToStr[INT], palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[BOOL])
   {
-    match(tokenToStr[BOOL], palavra, counter);
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
+    match(tokenToStr[BOOL], palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
   }
 
   if (lookahead == tokenToStr[VIRGULA])
   {
-    match(tokenToStr[VIRGULA], palavra, counter);
-    PARAMSF(palavra, counter);
+    match(tokenToStr[VIRGULA], palavra, counter, errorCounter, palavraDoErro);
+    PARAMSF(palavra, counter, errorCounter, palavraDoErro);
   }
   else
   {
-    return 1;
+    return (0);
   }
 }
 
-int TIPO(char *palavra, int *counter)
+int TIPO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   if (lookahead == tokenToStr[INT])
   {
-    match(tokenToStr[INT], palavra, counter);
+    match(tokenToStr[INT], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[VOID])
   {
-    match(tokenToStr[VOID], palavra, counter);
+    match(tokenToStr[VOID], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[SEMIC])
   {
-    match(tokenToStr[SEMIC], palavra, counter);
+    match(tokenToStr[SEMIC], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[BOOL])
   {
-    match(tokenToStr[BOOL], palavra, counter);
+    match(tokenToStr[BOOL], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[SEMIC])
   {
-    match(tokenToStr[BOOL], palavra, counter);
+    match(tokenToStr[BOOL], palavra, counter, errorCounter, palavraDoErro);
+  }
+  else
+  {
+    return (0);
   }
 }
 
-int IDENTIFICADOR_LIST(char *palavra, int *counter)
+int IDENTIFICADOR_LIST(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
   if (lookahead == tokenToStr[VIRGULA])
   {
-    match(tokenToStr[VIRGULA], palavra, counter);
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
+    match(tokenToStr[VIRGULA], palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
+  }
+  else
+  {
+    return (0);
   }
 }
 
-int DVAR(char *palavra, int *counter)
+int DVAR(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  TIPO(palavra, counter);
-  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  TIPO(palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
 
   if (lookahead == tokenToStr[VIRGULA])
   {
-    match(tokenToStr[VIRGULA], palavra, counter);
-    IDENTIFICADOR_LIST(palavra, counter);
+    match(tokenToStr[VIRGULA], palavra, counter, errorCounter, palavraDoErro);
+    IDENTIFICADOR_LIST(palavra, counter, errorCounter, palavraDoErro);
   }
 
-  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, errorCounter, palavraDoErro);
 }
 
-int DVAR_LIST(char *palavra, int *counter)
+int DVAR_LIST(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
   {
-    DVAR(palavra, counter);
+    DVAR(palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[IDENTIFICADOR])
   {
     // Atribuição de valores a variáveis declaradas previamente
-    ATRIB(palavra, counter);
-    DVAR_LIST(palavra, counter);
+    ATRIB(palavra, counter, errorCounter, palavraDoErro);
+    DVAR_LIST(palavra, counter, errorCounter, palavraDoErro);
   }
   else
   {
@@ -243,159 +254,167 @@ int DVAR_LIST(char *palavra, int *counter)
   }
 }
 
-int COMENTARIO(char *palavra, int *counter)
+int COMENTARIO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  match(tokenToStr[_COMENTARIO], palavra, counter);
+  match(tokenToStr[_COMENTARIO], palavra, counter, errorCounter, palavraDoErro);
 }
 
-int EXPR_SIMP(char *palavra, int *counter)
+int EXPR_SIMP(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   if (lookahead == tokenToStr[IDENTIFICADOR])
   {
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
     if (lookahead == tokenToStr[IDENTIFICADOR])
     {
-      match(tokenToStr[IDENTIFICADOR], palavra, counter);
+      match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
     }
     else if (lookahead == tokenToStr[NUM])
     {
-      match(tokenToStr[NUM], palavra, counter);
+      match(tokenToStr[NUM], palavra, counter, errorCounter, palavraDoErro);
     }
   }
   else if (lookahead == tokenToStr[NUM])
   {
-    match(tokenToStr[NUM], palavra, counter);
+    match(tokenToStr[NUM], palavra, counter, errorCounter, palavraDoErro);
     if (lookahead == tokenToStr[IDENTIFICADOR])
     {
-      match(tokenToStr[IDENTIFICADOR], palavra, counter);
+      match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
     }
     else if (lookahead == tokenToStr[NUM])
     {
-      match(tokenToStr[NUM], palavra, counter);
+      match(tokenToStr[NUM], palavra, counter, errorCounter, palavraDoErro);
     }
+  }
+  else
+  {
+    return (0);
   }
 }
 
-int ATRIB(char *palavra, int *counter)
+int ATRIB(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  match(tokenToStr[IDENTIFICADOR], palavra, counter);
-  match(tokenToStr[ATRIBUICAO], palavra, counter);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[ATRIBUICAO], palavra, counter, errorCounter, palavraDoErro);
   // Primeiro operando
   if (lookahead == tokenToStr[NUM])
   {
-    match(tokenToStr[NUM], palavra, counter);
+    match(tokenToStr[NUM], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[IDENTIFICADOR])
   {
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
   }
 
   // Operadores
   if (lookahead == tokenToStr[OPR_ADICAO])
   {
-    match(tokenToStr[OPR_ADICAO], palavra, counter);
+    match(tokenToStr[OPR_ADICAO], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[OPR_SUBTRACAO])
   {
-    match(tokenToStr[OPR_SUBTRACAO], palavra, counter);
+    match(tokenToStr[OPR_SUBTRACAO], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[OPR_MULTIPLICACAO])
   {
-    match(tokenToStr[OPR_MULTIPLICACAO], palavra, counter);
+    match(tokenToStr[OPR_MULTIPLICACAO], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[OPR_DIVISAO])
   {
-    match(tokenToStr[OPR_DIVISAO], palavra, counter);
+    match(tokenToStr[OPR_DIVISAO], palavra, counter, errorCounter, palavraDoErro);
   }
 
   // Segundo operando
   if (lookahead == tokenToStr[NUM])
   {
-    match(tokenToStr[NUM], palavra, counter);
+    match(tokenToStr[NUM], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[IDENTIFICADOR])
   {
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
   }
 
   else if (lookahead == tokenToStr[FALSE])
   {
-    match(tokenToStr[FALSE], palavra, counter);
+    match(tokenToStr[FALSE], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[TRUE])
   {
-    match(tokenToStr[TRUE], palavra, counter);
+    match(tokenToStr[TRUE], palavra, counter, errorCounter, palavraDoErro);
+  }
+  else
+  {
+    return (0);
   }
 
-  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, errorCounter, palavraDoErro);
 }
 
-int PROC(char *palavra, int *counter)
+int PROC(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  match(tokenToStr[_PROC], palavra, counter);
-  match(tokenToStr[IDENTIFICADOR], palavra, counter);
+  match(tokenToStr[_PROC], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
   if (lookahead == tokenToStr[ABRE_PARENTESIS])
   {
-    match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
-    PARAMSF(palavra, counter);
-    match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
+    match(tokenToStr[ABRE_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+    PARAMSF(palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[FECHA_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
   }
-  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, errorCounter, palavraDoErro);
 }
 
-int PRINT(char *palavra, int *counter)
+int PRINT(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  match(tokenToStr[_PRINT], palavra, counter);
-  match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
-  match(tokenToStr[IDENTIFICADOR], palavra, counter);
-  match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
-  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+  match(tokenToStr[_PRINT], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[ABRE_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[FECHA_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, errorCounter, palavraDoErro);
 }
 
-int REPET(char *palavra, int *counter)
+int REPET(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  match(tokenToStr[DO], palavra, counter);
-  match(tokenToStr[ABRE_CHAVES], palavra, counter);
-  BLOCO(palavra, counter);
-  match(tokenToStr[FECHA_CHAVES], palavra, counter);
-  match(tokenToStr[WHILE], palavra, counter);
-  match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
-  EXPR(palavra, counter);
-  match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
-  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+  match(tokenToStr[DO], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[ABRE_CHAVES], palavra, counter, errorCounter, palavraDoErro);
+  BLOCO(palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[FECHA_CHAVES], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[WHILE], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[ABRE_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+  EXPR(palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[FECHA_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, errorCounter, palavraDoErro);
 }
 
-int BLOCO(char *palavra, int *counter)
+int BLOCO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   // Lista de váriáveis + atribuição
   if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL] || lookahead == tokenToStr[IDENTIFICADOR])
   {
-    DVAR_LIST(palavra, counter);
-    BLOCO(palavra, counter);
+    DVAR_LIST(palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
   }
   // Proc
   else if (lookahead == tokenToStr[_PROC])
   {
-    PROC(palavra, counter);
-    BLOCO(palavra, counter);
+    PROC(palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
   }
   // If
   else if (lookahead == tokenToStr[IF])
   {
-    COND(palavra, counter);
-    BLOCO(palavra, counter);
+    COND(palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
   }
   // Print
   else if (lookahead == tokenToStr[_PRINT])
   {
-    PRINT(palavra, counter);
-    BLOCO(palavra, counter);
+    PRINT(palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
   }
   // Do while
   else if (lookahead == tokenToStr[DO])
   {
-    REPET(palavra, counter);
-    BLOCO(palavra, counter);
+    REPET(palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
   }
   else
   {
@@ -403,122 +422,126 @@ int BLOCO(char *palavra, int *counter)
   }
 }
 
-int RELACAO(char *palavra, int *counter)
+int RELACAO(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   if (lookahead == tokenToStr[IGUALDADE])
   {
-    match(tokenToStr[IGUALDADE], palavra, counter);
+    match(tokenToStr[IGUALDADE], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[DIFERENCA])
   {
-    match(tokenToStr[DIFERENCA], palavra, counter);
+    match(tokenToStr[DIFERENCA], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[MENOR_QUE])
   {
-    match(tokenToStr[MENOR_QUE], palavra, counter);
+    match(tokenToStr[MENOR_QUE], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[MENOR_OU_IGUAL_QUE])
   {
-    match(tokenToStr[MENOR_OU_IGUAL_QUE], palavra, counter);
+    match(tokenToStr[MENOR_OU_IGUAL_QUE], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[MAIOR_QUE])
   {
-    match(tokenToStr[MAIOR_QUE], palavra, counter);
+    match(tokenToStr[MAIOR_QUE], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[MAIOR_OU_IGUAL_QUE])
   {
-    match(tokenToStr[MAIOR_OU_IGUAL_QUE], palavra, counter);
+    match(tokenToStr[MAIOR_OU_IGUAL_QUE], palavra, counter, errorCounter, palavraDoErro);
+  }
+  else
+  {
+    return (0);
   }
 }
 
-int EXPR(char *palavra, int *counter)
+int EXPR(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   if (lookahead == tokenToStr[TRUE])
   {
-    match(tokenToStr[TRUE], palavra, counter);
+    match(tokenToStr[TRUE], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[FALSE])
   {
-    match(tokenToStr[FALSE], palavra, counter);
+    match(tokenToStr[FALSE], palavra, counter, errorCounter, palavraDoErro);
   }
 
   if (lookahead == tokenToStr[IDENTIFICADOR])
   {
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
-    RELACAO(palavra, counter);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
+    RELACAO(palavra, counter, errorCounter, palavraDoErro);
     if (lookahead == tokenToStr[IDENTIFICADOR])
     {
-      match(tokenToStr[IDENTIFICADOR], palavra, counter);
+      match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
     }
     else if (lookahead == tokenToStr[NUM])
     {
-      match(tokenToStr[NUM], palavra, counter);
+      match(tokenToStr[NUM], palavra, counter, errorCounter, palavraDoErro);
     }
     else if (lookahead == tokenToStr[TRUE])
     {
-      match(tokenToStr[TRUE], palavra, counter);
+      match(tokenToStr[TRUE], palavra, counter, errorCounter, palavraDoErro);
     }
     else if (lookahead == tokenToStr[FALSE])
     {
-      match(tokenToStr[FALSE], palavra, counter);
+      match(tokenToStr[FALSE], palavra, counter, errorCounter, palavraDoErro);
     }
   }
 }
 
-int COND(char *palavra, int *counter)
+int COND(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  match(tokenToStr[IF], palavra, counter);
-  match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
-  EXPR(palavra, counter);
-  match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
-  match(tokenToStr[ABRE_CHAVES], palavra, counter);
-  BLOCO(palavra, counter);
-  match(tokenToStr[FECHA_CHAVES], palavra, counter);
+  match(tokenToStr[IF], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[ABRE_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+  EXPR(palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[FECHA_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[ABRE_CHAVES], palavra, counter, errorCounter, palavraDoErro);
+  BLOCO(palavra, counter, errorCounter, palavraDoErro);
+  match(tokenToStr[FECHA_CHAVES], palavra, counter, errorCounter, palavraDoErro);
 
   if (lookahead == tokenToStr[ELSE])
   {
-    match(tokenToStr[ELSE], palavra, counter);
-    match(tokenToStr[ABRE_CHAVES], palavra, counter);
-    BLOCO(palavra, counter);
-    match(tokenToStr[FECHA_CHAVES], palavra, counter);
+    match(tokenToStr[ELSE], palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[ABRE_CHAVES], palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[FECHA_CHAVES], palavra, counter, errorCounter, palavraDoErro);
   }
 
-  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter);
+  match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, errorCounter, palavraDoErro);
 }
 
-int DFUNC(char *palavra, int *counter)
+int DFUNC(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
   if (lookahead == tokenToStr[SEMIC])
   {
-    TIPO(palavra, counter);
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
-    match(tokenToStr[ABRE_CHAVES], palavra, counter);
-    BLOCO(palavra, counter);
-    match(tokenToStr[FECHA_CHAVES], palavra, counter);
+    TIPO(palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[ABRE_CHAVES], palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[FECHA_CHAVES], palavra, counter, errorCounter, palavraDoErro);
   }
   else if (lookahead == tokenToStr[VOID] || lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
   {
-    TIPO(palavra, counter);
-    match(tokenToStr[IDENTIFICADOR], palavra, counter);
-    match(tokenToStr[ABRE_PARENTESIS], palavra, counter);
-    PARAMSF(palavra, counter);
-    match(tokenToStr[FECHA_PARENTESIS], palavra, counter);
-    match(tokenToStr[ABRE_CHAVES], palavra, counter);
-    BLOCO(palavra, counter);
-    match(tokenToStr[FECHA_CHAVES], palavra, counter);
+    TIPO(palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[IDENTIFICADOR], palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[ABRE_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+    PARAMSF(palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[FECHA_PARENTESIS], palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[ABRE_CHAVES], palavra, counter, errorCounter, palavraDoErro);
+    BLOCO(palavra, counter, errorCounter, palavraDoErro);
+    match(tokenToStr[FECHA_CHAVES], palavra, counter, errorCounter, palavraDoErro);
 
     if (lookahead == tokenToStr[SEMIC])
     {
-      DFUNC(palavra, counter);
+      DFUNC(palavra, counter, errorCounter, palavraDoErro);
     }
 
     // TODO: if lookahead != SEMIC, validar outras funcs.
   }
 }
 
-int S(char *palavra, int *counter)
+int S(char *palavra, int *counter, int *errorCounter, char *palavraDoErro)
 {
-  DFUNC(palavra, counter);
+  DFUNC(palavra, counter, errorCounter, palavraDoErro);
 }
 
 int main()
@@ -544,8 +567,19 @@ int main()
   fclose(entrada);
 
   int counter = 0;
+  int errorCounter = 0;
+  char palavraDoErro = ' ';
   lookahead = scanner(palavra, &counter);
-  S(palavra, &counter);
+  S(palavra, &counter, &errorCounter, &palavraDoErro);
+  if (errorCounter == 0 || lookahead == tokenToStr[ERRO_SINTATICO])
+  {
+    printf("Programa sem erros sintáticos!\n");
+  }
+  else
+  {
+    printf("Erro em: %c\n", palavraDoErro);
+    trataErro();
+  }
 
   return 0;
 }
@@ -1543,5 +1577,5 @@ q100: // Digitos
 q101: // Comentario
   return tokenToStr[_COMENTARIO];
 erro: // Erro léxico
-  return tokenToStr[ERRO_LEXICO];
+  return tokenToStr[ERRO_SINTATICO];
 }
