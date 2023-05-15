@@ -1,4 +1,4 @@
-void _umProc ( int _a1 ) { 
+void _umProc ( int _a ) { 
     int  _a ; 
     _a = 1 ; 
     if ( _a < 1 ) { 
@@ -26,7 +26,7 @@ semic _correto {
 	_c = _a / _b ; 
     } ; 
 
-    proc _umProc ( 10 ) ; 
+    proc _umProc1 ( 10 ) ; 
 
     do { 
 	if ( _b > 10 ) { 
