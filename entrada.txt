@@ -26,7 +26,7 @@ semic _correto {
 	_c = _a / _b ; 
     } ; 
 
-    proc _umProc1 ( 10 ) ; 
+    proc _umProc ( 10 ) ; 
 
     do { 
 	if ( _b > 10 ) { 
