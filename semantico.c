@@ -90,6 +90,8 @@ char *tokenToStr[] = {
 typedef struct IdentifierNode
 {
   Token token;
+  Token type;
+  char *lexema;
   int isFunction;
   struct IdentifierNode *next;
 } IdentifierNode;
@@ -97,7 +99,7 @@ typedef struct IdentifierNode
 // Estrutura do bloco
 typedef struct Block
 {
-  char blockIdentifier;
+  int blockIdentifier;
   IdentifierNode *identifiers;
   struct Block *next;
 } Block;
@@ -108,84 +110,119 @@ typedef struct SymbolTable
   Block *head;
 } SymbolTable;
 
-char *lookahead; /* Excepcionalmente variavel global */
+typedef struct Scanner
+{
+  char *token;
+  char *lexema;
+} Scanner;
+
+Scanner *lookahead; /* Excepcionalmente variavel global */
 
 SymbolTable *createSymbolTable();
-void createBlock(SymbolTable *symbolTable, char blockIdentifier);
-void addIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token token, int isFunction);
-void editIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token oldToken, Token newToken);
-void removeIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token token);
-IdentifierNode *searchIdentifier(SymbolTable *symbolTable, Token token);
-void deleteBlock(SymbolTable *symbolTable, char blockIdentifier);
-void freeSymbolTable(SymbolTable *symbolTable, int blockCounter);
-void printSymbolTable(SymbolTable *symbolTable, int blockCounter);
+void createBlock(SymbolTable *symbolTable, int blockIdentifier);
+void addIdentifier(SymbolTable *symbolTable, int blockIdentifier, Token token, Token type, char *lexema, int isFunction);
+void editIdentifier(SymbolTable *symbolTable, int blockIdentifier, Token oldToken, Token newToken, Token newType, char *newLexema);
+void removeIdentifier(SymbolTable *symbolTable, int blockIdentifier, Token token);
+IdentifierNode *searchIdentifier(SymbolTable *symbolTable, char *lexema);
+void deleteBlock(SymbolTable *symbolTable, int blockIdentifier);
+void freeSymbolTable(SymbolTable *symbolTable);
+void printSymbolTable(SymbolTable *symbolTable);
 
 // Funções do Análisador Sintático
-int match(char *t, char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int S(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int DFUNC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int COMENTARIO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int PARAMSF(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int TIPO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int DVAR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int DVAR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int BLOCO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int ATRIB(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int PROC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int COND(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int REPET(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int PRINT(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int EXPR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int RELACAO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
-int IDENTIFICADOR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter);
+int match(char *t, char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int S(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int DFUNC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int COMENTARIO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int PARAMSF(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int TIPO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int DVAR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter, Token type);
+int DVAR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter, Token type);
+int BLOCO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int ATRIB(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int PROC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int COND(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int REPET(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int PRINT(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int EXPR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int RELACAO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter);
+int IDENTIFICADOR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter, Token type);
+
+void adicionarCaractere(char **string, char novoCaractere)
+{
+  int tamanhoAtual = 0;
+  if (*string != NULL)
+  {
+    tamanhoAtual = strlen(*string);
+  }
+
+  // Redimensiona a memória alocada para a string (incluindo espaço para o novo caractere e o caractere nulo de terminação)
+  *string = realloc(*string, (tamanhoAtual + 2) * sizeof(char));
+
+  // Adiciona o novo caractere à string
+  (*string)[tamanhoAtual] = novoCaractere;
+  (*string)[tamanhoAtual + 1] = '\0';
+}
+
+char convertIntToChar(const int *intPtr)
+{
+  if (intPtr == NULL)
+  {
+    return 0; // Valor padrão para um int
+  }
+
+  int intValue = *intPtr;
+  return intValue;
+}
 
 // Função scanner do análisador léxico
-char *scanner(char *lexema, int *counter, char *erroSintatico);
+Scanner *scanner(char *lexema, int *counter, char *erroSintatico);
 
-int match(char *t, char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int match(char *t, char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
-  if (lookahead == t)
+  // printf("lookahead->lexema: %s\n", lookahead->lexema);
+  if (lookahead->token == t)
   {
     lookahead = scanner(palavra, counter, erroSintatico);
-    if (lookahead == tokenToStr[_COMENTARIO])
+    if (lookahead->token == tokenToStr[_COMENTARIO])
     {
       COMENTARIO(palavra, counter, erroSintatico, symbolTable, blockCounter);
     }
     return 1;
   }
 
-  // lookahead = scanner(palavra, counter, erroSintatico);
   return 0;
 }
 
 // PARAMSF -> TIPO IDENTIFICADOR | NUMERO | true | false | TIPO IDENTIFICADOR , PARAMSF
-int PARAMSF(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int PARAMSF(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
-  if (lookahead == tokenToStr[NUM])
+  if (lookahead->token == tokenToStr[NUM])
   {
     match(tokenToStr[NUM], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[TRUE])
+  else if (lookahead->token == tokenToStr[TRUE])
   {
     match(tokenToStr[TRUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[FALSE])
+  else if (lookahead->token == tokenToStr[FALSE])
   {
     match(tokenToStr[FALSE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 
-  if (lookahead == tokenToStr[INT])
+  if (lookahead->token == tokenToStr[INT])
   {
     match(tokenToStr[INT], palavra, counter, erroSintatico, symbolTable, blockCounter);
+    addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, INT, lookahead->lexema, 0);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[BOOL])
+  else if (lookahead->token == tokenToStr[BOOL])
   {
     match(tokenToStr[BOOL], palavra, counter, erroSintatico, symbolTable, blockCounter);
+    addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, BOOL, lookahead->lexema, 0);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 
-  if (lookahead == tokenToStr[VIRGULA])
+  if (lookahead->token == tokenToStr[VIRGULA])
   {
     match(tokenToStr[VIRGULA], palavra, counter, erroSintatico, symbolTable, blockCounter);
     PARAMSF(palavra, counter, erroSintatico, symbolTable, blockCounter);
@@ -197,67 +234,66 @@ int PARAMSF(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbo
 }
 
 // TIPO -> int, void, bool, semic
-int TIPO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int TIPO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
-  if (lookahead == tokenToStr[INT])
+  if (lookahead->token == tokenToStr[INT])
   {
     match(tokenToStr[INT], palavra, counter, erroSintatico, symbolTable, blockCounter);
-    addIdentifier(symbolTable, blockCounter, INT, 0);
   }
-  else if (lookahead == tokenToStr[VOID])
+  else if (lookahead->token == tokenToStr[VOID])
   {
     match(tokenToStr[VOID], palavra, counter, erroSintatico, symbolTable, blockCounter);
-    addIdentifier(symbolTable, blockCounter, VOID, 0);
   }
-  else if (lookahead == tokenToStr[SEMIC])
+  else if (lookahead->token == tokenToStr[SEMIC])
   {
     match(tokenToStr[SEMIC], palavra, counter, erroSintatico, symbolTable, blockCounter);
-    addIdentifier(symbolTable, blockCounter, SEMIC, 0);
   }
-  else if (lookahead == tokenToStr[BOOL])
+  else if (lookahead->token == tokenToStr[BOOL])
   {
     match(tokenToStr[BOOL], palavra, counter, erroSintatico, symbolTable, blockCounter);
-    addIdentifier(symbolTable, blockCounter, BOOL, 0);
   }
 }
 
 // IDENTIFICADOR_LIST -> IDENTIFICADOR | IDENTIFICADOR , IDENTIFICADOR_LIST
-int IDENTIFICADOR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int IDENTIFICADOR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter, Token type)
 {
+  addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, type, lookahead->lexema, 0);
   match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
-  if (lookahead == tokenToStr[VIRGULA])
+  if (lookahead->token == tokenToStr[VIRGULA])
   {
     match(tokenToStr[VIRGULA], palavra, counter, erroSintatico, symbolTable, blockCounter);
+    addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, type, lookahead->lexema, 0);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 }
 
 // DVAR -> TIPO IDENTIFICADOR_LIST ;
-int DVAR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int DVAR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter, Token type)
 {
   TIPO(palavra, counter, erroSintatico, symbolTable, blockCounter);
+  addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, type, lookahead->lexema, 0);
   match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
 
-  if (lookahead == tokenToStr[VIRGULA])
+  if (lookahead->token == tokenToStr[VIRGULA])
   {
     match(tokenToStr[VIRGULA], palavra, counter, erroSintatico, symbolTable, blockCounter);
-    IDENTIFICADOR_LIST(palavra, counter, erroSintatico, symbolTable, blockCounter);
+    IDENTIFICADOR_LIST(palavra, counter, erroSintatico, symbolTable, blockCounter, type);
   }
 
   match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, erroSintatico, symbolTable, blockCounter);
 }
 
 // DVAR_LIST -> DVAR | DVAR DVAR_LIST | ATRIB | e
-int DVAR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int DVAR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter, Token type)
 {
-  if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
+  if (lookahead->token == tokenToStr[INT] || lookahead->token == tokenToStr[BOOL])
   {
-    DVAR(palavra, counter, erroSintatico, symbolTable, blockCounter);
+    DVAR(palavra, counter, erroSintatico, symbolTable, blockCounter, type);
   }
-  else if (lookahead == tokenToStr[IDENTIFICADOR])
+  else if (lookahead->token == tokenToStr[IDENTIFICADOR])
   {
     ATRIB(palavra, counter, erroSintatico, symbolTable, blockCounter);
-    DVAR_LIST(palavra, counter, erroSintatico, symbolTable, blockCounter);
+    DVAR_LIST(palavra, counter, erroSintatico, symbolTable, blockCounter, type);
   }
   else
   {
@@ -266,59 +302,62 @@ int DVAR_LIST(char *palavra, int *counter, char *erroSintatico, SymbolTable *sym
 }
 
 // COMENTARIO -> /* [a, z] [1, 9]  */
-int COMENTARIO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int COMENTARIO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
   match(tokenToStr[_COMENTARIO], palavra, counter, erroSintatico, symbolTable, blockCounter);
 }
 
 // ATRIB -> IDENTIFICADOR = IDENTIFICADOR ; | IDENTIFICADOR = NUMERO ; | IDENTIFICADOR = IDENTIFICADOR + NUMERO ; | IDENTIFICADOR = NUMERO + IDENTIFICADOR ; | IDENTIFICADOR = true ; | IDENTIFICADOR = false ;
-int ATRIB(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int ATRIB(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
+  searchIdentifier(symbolTable, lookahead->lexema);
   match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[ATRIBUICAO], palavra, counter, erroSintatico, symbolTable, blockCounter);
   // Primeiro operando
-  if (lookahead == tokenToStr[NUM])
+  if (lookahead->token == tokenToStr[NUM])
   {
     match(tokenToStr[NUM], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[IDENTIFICADOR])
+  else if (lookahead->token == tokenToStr[IDENTIFICADOR])
   {
+    searchIdentifier(symbolTable, lookahead->lexema);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 
   // Operadores
-  if (lookahead == tokenToStr[OPR_ADICAO])
+  if (lookahead->token == tokenToStr[OPR_ADICAO])
   {
     match(tokenToStr[OPR_ADICAO], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[OPR_SUBTRACAO])
+  else if (lookahead->token == tokenToStr[OPR_SUBTRACAO])
   {
     match(tokenToStr[OPR_SUBTRACAO], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[OPR_MULTIPLICACAO])
+  else if (lookahead->token == tokenToStr[OPR_MULTIPLICACAO])
   {
     match(tokenToStr[OPR_MULTIPLICACAO], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[OPR_DIVISAO])
+  else if (lookahead->token == tokenToStr[OPR_DIVISAO])
   {
     match(tokenToStr[OPR_DIVISAO], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 
   // Segundo operando
-  if (lookahead == tokenToStr[NUM])
+  if (lookahead->token == tokenToStr[NUM])
   {
     match(tokenToStr[NUM], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[IDENTIFICADOR])
+  else if (lookahead->token == tokenToStr[IDENTIFICADOR])
   {
+    searchIdentifier(symbolTable, lookahead->lexema);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 
-  else if (lookahead == tokenToStr[FALSE])
+  else if (lookahead->token == tokenToStr[FALSE])
   {
     match(tokenToStr[FALSE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[TRUE])
+  else if (lookahead->token == tokenToStr[TRUE])
   {
     match(tokenToStr[TRUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
@@ -327,11 +366,12 @@ int ATRIB(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolT
 }
 
 // PROC -> proc IDENTIFICADOR | “proc” IDENTIFICADOR ( PARAMSF ) ;
-int PROC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int PROC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
   match(tokenToStr[_PROC], palavra, counter, erroSintatico, symbolTable, blockCounter);
+  addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, _PROC, lookahead->lexema, 1);
   match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
-  if (lookahead == tokenToStr[ABRE_PARENTESIS])
+  if (lookahead->token == tokenToStr[ABRE_PARENTESIS])
   {
     match(tokenToStr[ABRE_PARENTESIS], palavra, counter, erroSintatico, symbolTable, blockCounter);
     PARAMSF(palavra, counter, erroSintatico, symbolTable, blockCounter);
@@ -341,17 +381,18 @@ int PROC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTa
 }
 
 // PRINT -> print ( IDENTIFICADOR ) ;
-int PRINT(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int PRINT(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
   match(tokenToStr[_PRINT], palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[ABRE_PARENTESIS], palavra, counter, erroSintatico, symbolTable, blockCounter);
+  searchIdentifier(symbolTable, lookahead->lexema);
   match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[FECHA_PARENTESIS], palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[PONTO_E_VIRGULA], palavra, counter, erroSintatico, symbolTable, blockCounter);
 }
 
 // REPET -> do { BLOCO } while ( EXPR ) ;
-int REPET(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int REPET(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
   match(tokenToStr[DO], palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[ABRE_CHAVES], palavra, counter, erroSintatico, symbolTable, blockCounter);
@@ -365,34 +406,34 @@ int REPET(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolT
 }
 
 // BLOCO -> DVAR_LIST BLOCO | PROC BLOCO | COND BLOCO | PRINT BLOCO | REPET BLOCO | e
-int BLOCO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int BLOCO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
   // Lista de váriáveis + atribuição
-  if (lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL] || lookahead == tokenToStr[IDENTIFICADOR])
+  if (lookahead->token == tokenToStr[INT] || lookahead->token == tokenToStr[BOOL] || lookahead->token == tokenToStr[IDENTIFICADOR])
   {
-    DVAR_LIST(palavra, counter, erroSintatico, symbolTable, blockCounter);
+    DVAR_LIST(palavra, counter, erroSintatico, symbolTable, blockCounter, lookahead->token == tokenToStr[INT] ? INT : BOOL);
     BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
   // Proc
-  else if (lookahead == tokenToStr[_PROC])
+  else if (lookahead->token == tokenToStr[_PROC])
   {
     PROC(palavra, counter, erroSintatico, symbolTable, blockCounter);
     BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
   // If
-  else if (lookahead == tokenToStr[IF])
+  else if (lookahead->token == tokenToStr[IF])
   {
     COND(palavra, counter, erroSintatico, symbolTable, blockCounter);
     BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
   // Print
-  else if (lookahead == tokenToStr[_PRINT])
+  else if (lookahead->token == tokenToStr[_PRINT])
   {
     PRINT(palavra, counter, erroSintatico, symbolTable, blockCounter);
     BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
   // Do while
-  else if (lookahead == tokenToStr[DO])
+  else if (lookahead->token == tokenToStr[DO])
   {
     REPET(palavra, counter, erroSintatico, symbolTable, blockCounter);
     BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
@@ -404,63 +445,65 @@ int BLOCO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolT
 }
 
 // RELAÇÃO -> == | <> | < | <= | >= | >
-int RELACAO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int RELACAO(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
-  if (lookahead == tokenToStr[IGUALDADE])
+  if (lookahead->token == tokenToStr[IGUALDADE])
   {
     match(tokenToStr[IGUALDADE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[DIFERENCA])
+  else if (lookahead->token == tokenToStr[DIFERENCA])
   {
     match(tokenToStr[DIFERENCA], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[MENOR_QUE])
+  else if (lookahead->token == tokenToStr[MENOR_QUE])
   {
     match(tokenToStr[MENOR_QUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[MENOR_OU_IGUAL_QUE])
+  else if (lookahead->token == tokenToStr[MENOR_OU_IGUAL_QUE])
   {
     match(tokenToStr[MENOR_OU_IGUAL_QUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[MAIOR_QUE])
+  else if (lookahead->token == tokenToStr[MAIOR_QUE])
   {
     match(tokenToStr[MAIOR_QUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[MAIOR_OU_IGUAL_QUE])
+  else if (lookahead->token == tokenToStr[MAIOR_OU_IGUAL_QUE])
   {
     match(tokenToStr[MAIOR_OU_IGUAL_QUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 }
 
 // EXPR -> true | false | IDENTIFICADOR RELACAO IDENTIFICADOR | IDENTIFICADOR RELACAO NUMERO | IDENTIFICADOR RELACAO false | IDENTIFICADOR RELACAO true
-int EXPR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int EXPR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
-  if (lookahead == tokenToStr[TRUE])
+  if (lookahead->token == tokenToStr[TRUE])
   {
     match(tokenToStr[TRUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[FALSE])
+  else if (lookahead->token == tokenToStr[FALSE])
   {
     match(tokenToStr[FALSE], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
 
-  if (lookahead == tokenToStr[IDENTIFICADOR])
+  if (lookahead->token == tokenToStr[IDENTIFICADOR])
   {
+    searchIdentifier(symbolTable, lookahead->lexema);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
     RELACAO(palavra, counter, erroSintatico, symbolTable, blockCounter);
-    if (lookahead == tokenToStr[IDENTIFICADOR])
+    if (lookahead->token == tokenToStr[IDENTIFICADOR])
     {
+      searchIdentifier(symbolTable, lookahead->lexema);
       match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
     }
-    else if (lookahead == tokenToStr[NUM])
+    else if (lookahead->token == tokenToStr[NUM])
     {
       match(tokenToStr[NUM], palavra, counter, erroSintatico, symbolTable, blockCounter);
     }
-    else if (lookahead == tokenToStr[TRUE])
+    else if (lookahead->token == tokenToStr[TRUE])
     {
       match(tokenToStr[TRUE], palavra, counter, erroSintatico, symbolTable, blockCounter);
     }
-    else if (lookahead == tokenToStr[FALSE])
+    else if (lookahead->token == tokenToStr[FALSE])
     {
       match(tokenToStr[FALSE], palavra, counter, erroSintatico, symbolTable, blockCounter);
     }
@@ -468,7 +511,7 @@ int EXPR(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTa
 }
 
 // COND -> if ( EXPR ) { BLOCO } | if ( EXPR ) { BLOCO } else { BLOCO } ;
-int COND(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int COND(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
   match(tokenToStr[IF], palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[ABRE_PARENTESIS], palavra, counter, erroSintatico, symbolTable, blockCounter);
@@ -478,7 +521,7 @@ int COND(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTa
   BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[FECHA_CHAVES], palavra, counter, erroSintatico, symbolTable, blockCounter);
 
-  if (lookahead == tokenToStr[ELSE])
+  if (lookahead->token == tokenToStr[ELSE])
   {
     match(tokenToStr[ELSE], palavra, counter, erroSintatico, symbolTable, blockCounter);
     match(tokenToStr[ABRE_CHAVES], palavra, counter, erroSintatico, symbolTable, blockCounter);
@@ -490,40 +533,45 @@ int COND(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTa
 }
 
 // DFUNC -> TIPO IDENTIFICADOR ( PARAMSF ) BLOCO | TIPO IDENTIFICADOR ( PARAMSF ) BLOCO DFUNC | e
-int DFUNC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int DFUNC(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
-  if (lookahead == tokenToStr[SEMIC])
+  createBlock(symbolTable, convertIntToChar(blockCounter));
+  if (lookahead->token == tokenToStr[SEMIC])
   {
-    createBlock(symbolTable, blockCounter);
     TIPO(palavra, counter, erroSintatico, symbolTable, blockCounter);
+    addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, SEMIC, lookahead->lexema, 1);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
-    addIdentifier(symbolTable, blockCounter, IDENTIFICADOR, 0);
     match(tokenToStr[ABRE_CHAVES], palavra, counter, erroSintatico, symbolTable, blockCounter);
     BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
     match(tokenToStr[FECHA_CHAVES], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
-  else if (lookahead == tokenToStr[VOID] || lookahead == tokenToStr[INT] || lookahead == tokenToStr[BOOL])
+  else if (lookahead->token == tokenToStr[VOID] || lookahead->token == tokenToStr[INT] || lookahead->token == tokenToStr[BOOL])
   {
     TIPO(palavra, counter, erroSintatico, symbolTable, blockCounter);
+    addIdentifier(symbolTable, convertIntToChar(blockCounter), IDENTIFICADOR, lookahead->token == tokenToStr[VOID] ? VOID : lookahead->token == tokenToStr[INT] ? INT
+                                                                                                                                                                : BOOL,
+                  lookahead->lexema, 0);
     match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
     match(tokenToStr[ABRE_PARENTESIS], palavra, counter, erroSintatico, symbolTable, blockCounter);
+    // printf("blockC: %ls\n", blockCounter);
+    // (*blockCounter++); // New Block
+    // printf("blockC 2: %ls\n", blockCounter);
+    // createBlock(symbolTable, convertIntToChar(blockCounter));
     PARAMSF(palavra, counter, erroSintatico, symbolTable, blockCounter);
     match(tokenToStr[FECHA_PARENTESIS], palavra, counter, erroSintatico, symbolTable, blockCounter);
     match(tokenToStr[ABRE_CHAVES], palavra, counter, erroSintatico, symbolTable, blockCounter);
     BLOCO(palavra, counter, erroSintatico, symbolTable, blockCounter);
     match(tokenToStr[FECHA_CHAVES], palavra, counter, erroSintatico, symbolTable, blockCounter);
 
-    if (lookahead == tokenToStr[SEMIC])
+    if (lookahead->token == tokenToStr[SEMIC])
     {
       DFUNC(palavra, counter, erroSintatico, symbolTable, blockCounter);
     }
-
-    // TODO: if lookahead != SEMIC, validar outras funcs.
   }
 }
 
 // S -> DFUNC | e
-int S(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int blockCounter)
+int S(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
   return DFUNC(palavra, counter, erroSintatico, symbolTable, blockCounter);
 }
@@ -537,7 +585,7 @@ SymbolTable *createSymbolTable()
 }
 
 // Função para criar um novo bloco na tabela de símbolos
-void createBlock(SymbolTable *symbolTable, char blockIdentifier)
+void createBlock(SymbolTable *symbolTable, int blockIdentifier)
 {
   Block *newBlock = (Block *)malloc(sizeof(Block));
   newBlock->blockIdentifier = blockIdentifier;
@@ -560,7 +608,7 @@ void createBlock(SymbolTable *symbolTable, char blockIdentifier)
 }
 
 // Função para adicionar um identificador a um bloco existente
-void addIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token token, int isFunction)
+void addIdentifier(SymbolTable *symbolTable, int blockIdentifier, Token token, Token type, char *lexema, int isFunction)
 {
   Block *currentBlock = symbolTable->head;
   while (currentBlock != NULL)
@@ -569,6 +617,8 @@ void addIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token token, 
     {
       IdentifierNode *newIdentifier = (IdentifierNode *)malloc(sizeof(IdentifierNode));
       newIdentifier->token = token;
+      newIdentifier->type = type;
+      newIdentifier->lexema = strdup(lexema);
       newIdentifier->isFunction = isFunction;
       newIdentifier->next = NULL;
 
@@ -593,7 +643,7 @@ void addIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token token, 
 }
 
 // Função para editar um identificador em um bloco existente
-void editIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token oldToken, Token newToken)
+void editIdentifier(SymbolTable *symbolTable, int blockIdentifier, Token oldToken, Token newToken, Token newType, char *newLexema)
 {
   Block *currentBlock = symbolTable->head;
   while (currentBlock != NULL)
@@ -606,6 +656,9 @@ void editIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token oldTok
         if (currentIdentifier->token == oldToken)
         {
           currentIdentifier->token = newToken;
+          currentIdentifier->type = newType;
+          free(currentIdentifier->lexema);
+          currentIdentifier->lexema = strdup(newLexema);
           break;
         }
         currentIdentifier = currentIdentifier->next;
@@ -617,7 +670,7 @@ void editIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token oldTok
 }
 
 // Função para remover um identificador de um bloco existente
-void removeIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token token)
+void removeIdentifier(SymbolTable *symbolTable, int blockIdentifier, Token token)
 {
   Block *currentBlock = symbolTable->head;
   while (currentBlock != NULL)
@@ -639,6 +692,7 @@ void removeIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token toke
           {
             previousIdentifier->next = currentIdentifier->next;
           }
+          free(currentIdentifier->lexema);
           free(currentIdentifier);
           break;
         }
@@ -653,7 +707,7 @@ void removeIdentifier(SymbolTable *symbolTable, char blockIdentifier, Token toke
   }
 }
 
-IdentifierNode *searchIdentifier(SymbolTable *symbolTable, Token token)
+IdentifierNode *searchIdentifier(SymbolTable *symbolTable, char *lexema)
 {
   Block *currentBlock = symbolTable->head;
   while (currentBlock != NULL)
@@ -661,7 +715,8 @@ IdentifierNode *searchIdentifier(SymbolTable *symbolTable, Token token)
     IdentifierNode *currentIdentifier = currentBlock->identifiers;
     while (currentIdentifier != NULL)
     {
-      if (currentIdentifier->token == token)
+      int result = strcmp(lexema, currentIdentifier->lexema);
+      if (result == 0)
       {
         return currentIdentifier;
       }
@@ -669,11 +724,12 @@ IdentifierNode *searchIdentifier(SymbolTable *symbolTable, Token token)
     }
     currentBlock = currentBlock->next;
   }
+  printf("searchIdentifier -> ERRO SEMÂNTICO\n");
   return NULL; // Valor não encontrado
 }
 
 // Função para deletar um bloco da tabela de símbolos
-void deleteBlock(SymbolTable *symbolTable, char blockIdentifier)
+void deleteBlock(SymbolTable *symbolTable, int blockIdentifier)
 {
   Block *currentBlock = symbolTable->head;
   Block *previousBlock = NULL;
@@ -696,6 +752,7 @@ void deleteBlock(SymbolTable *symbolTable, char blockIdentifier)
       while (currentIdentifier != NULL)
       {
         IdentifierNode *nextIdentifier = currentIdentifier->next;
+        free(currentIdentifier->lexema);
         free(currentIdentifier);
         currentIdentifier = nextIdentifier;
       }
@@ -710,7 +767,7 @@ void deleteBlock(SymbolTable *symbolTable, char blockIdentifier)
 }
 
 // Função para liberar toda a memória da tabela de símbolos
-void freeSymbolTable(SymbolTable *symbolTable, int blockCounter)
+void freeSymbolTable(SymbolTable *symbolTable)
 {
   Block *currentBlock = symbolTable->head;
   while (currentBlock != NULL)
@@ -722,6 +779,7 @@ void freeSymbolTable(SymbolTable *symbolTable, int blockCounter)
     while (currentIdentifier != NULL)
     {
       IdentifierNode *nextIdentifier = currentIdentifier->next;
+      free(currentIdentifier->lexema);
       free(currentIdentifier);
       currentIdentifier = nextIdentifier;
     }
@@ -734,7 +792,7 @@ void freeSymbolTable(SymbolTable *symbolTable, int blockCounter)
 }
 
 // Função auxiliar para exibir a tabela de símbolos
-void printSymbolTable(SymbolTable *symbolTable, int blockCounter)
+void printSymbolTable(SymbolTable *symbolTable)
 {
   Block *currentBlock = symbolTable->head;
   while (currentBlock != NULL)
@@ -743,11 +801,96 @@ void printSymbolTable(SymbolTable *symbolTable, int blockCounter)
     IdentifierNode *currentIdentifier = currentBlock->identifiers;
     while (currentIdentifier != NULL)
     {
-      printf("  Token: %d, isFunction: %d\n", currentIdentifier->token, currentIdentifier->isFunction);
+      printf("  Token: %d, Type: %d, Lexema: %s, isFunction: %d\n",
+             currentIdentifier->token, currentIdentifier->type, currentIdentifier->lexema,
+             currentIdentifier->isFunction);
       currentIdentifier = currentIdentifier->next;
     }
     currentBlock = currentBlock->next;
   }
+}
+
+void printSymbolTable2(SymbolTable *symbolTable)
+{
+  Block *currentBlock = symbolTable->head;
+
+  // Verifica se a tabela está vazia
+  if (currentBlock == NULL)
+  {
+    printf("Tabela de símbolos vazia.\n");
+    return;
+  }
+
+  // Encontra o número máximo de identificadores em um bloco
+  int maxIdentifiers = 0;
+  while (currentBlock != NULL)
+  {
+    int count = 0;
+    IdentifierNode *currentIdentifier = currentBlock->identifiers;
+    while (currentIdentifier != NULL)
+    {
+      count++;
+      currentIdentifier = currentIdentifier->next;
+    }
+    if (count > maxIdentifiers)
+    {
+      maxIdentifiers = count;
+    }
+    currentBlock = currentBlock->next;
+  }
+
+  // Imprime a tabela de símbolos
+  currentBlock = symbolTable->head;
+  printf("|");
+  while (currentBlock != NULL)
+  {
+    printf("-------------|");
+    currentBlock = currentBlock->next;
+  }
+  printf("\n");
+
+  currentBlock = symbolTable->head;
+  printf("|");
+  while (currentBlock != NULL)
+  {
+    printf("   Block %c   |", currentBlock->blockIdentifier);
+    currentBlock = currentBlock->next;
+  }
+  printf("\n");
+
+  for (int i = 0; i < maxIdentifiers; i++)
+  {
+    currentBlock = symbolTable->head;
+    while (currentBlock != NULL)
+    {
+      IdentifierNode *currentIdentifier = currentBlock->identifiers;
+      int count = 0;
+      while (count < i && currentIdentifier != NULL)
+      {
+        currentIdentifier = currentIdentifier->next;
+        count++;
+      }
+      if (currentIdentifier != NULL)
+      {
+        printf("|  Token: %d, isFunction: %d  ", currentIdentifier->token, currentIdentifier->isFunction);
+      }
+      else
+      {
+        printf("|             ");
+      }
+      currentBlock = currentBlock->next;
+    }
+    printf("|\n");
+  }
+
+  currentBlock = symbolTable->head;
+  printf("|");
+  while (currentBlock != NULL)
+  {
+    printf("-------------|");
+    currentBlock = currentBlock->next;
+  }
+  printf("\n");
 }
 
 int main()
@@ -779,10 +922,8 @@ int main()
 
   int counter = 0;
   lookahead = scanner(palavra, &counter, erroSintatico);
-  int result = S(palavra, &counter, erroSintatico, symbolTable, blockCounter);
-  // printf("Result: %i\n", result);
-  // printf("lookahead: %s \n", lookahead);
-  if (lookahead == tokenToStr[ERRO_SINTATICO])
+  int result = S(palavra, &counter, erroSintatico, symbolTable, &blockCounter);
+  if (lookahead->token == tokenToStr[ERRO_SINTATICO])
   {
     printf("Programa apresenta erros sintáticos em:\n");
     int i;
@@ -797,20 +938,24 @@ int main()
     printf("Programa sem erros sintáticos!\n");
   }
 
-  printSymbolTable(symbolTable, blockCounter);
+  printSymbolTable(symbolTable);
 
-  freeSymbolTable(symbolTable, blockCounter);
+  freeSymbolTable(symbolTable);
 
   return 0;
 }
 
-char *scanner(char *lexema, int *counter, char *erroSintatico)
+Scanner *scanner(char *lexema, int *counter, char *erroSintatico)
 {
+  Scanner *scan = malloc(sizeof(Scanner));
   char digit = lexema[*counter];
+  char *palavra = NULL;
 
   if (digit == EOF || digit == '\x0')
   {
-    return tokenToStr[END_OF_FILE];
+    scan->token = tokenToStr[END_OF_FILE];
+    scan->lexema = "";
+    return scan;
   }
 
 q0:
@@ -888,6 +1033,7 @@ q0:
   }
   if (digit == '_')
   {
+    adicionarCaractere(&palavra, '_');
     (*counter)++;
     digit = lexema[*counter];
     goto q93;
@@ -1020,7 +1166,9 @@ q5:
     goto erro;
   }
 q6: // print
-  return tokenToStr[_PRINT];
+  scan->token = tokenToStr[_PRINT];
+  scan->lexema = "";
+  return scan;
 q7:
   if (digit == 'c')
   {
@@ -1040,7 +1188,9 @@ q8:
     goto erro;
   }
 q9: // proc
-  return tokenToStr[_PROC];
+  scan->token = tokenToStr[_PROC];
+  scan->lexema = "";
+  return scan;
 q10:
   if (digit == 'o')
   {
@@ -1074,7 +1224,9 @@ q13:
     goto erro;
   }
 q14: // void
-  return tokenToStr[VOID];
+  scan->token = tokenToStr[VOID];
+  scan->lexema = "";
+  return scan;
 q15:
   if (digit == 'h')
   {
@@ -1115,7 +1267,9 @@ q19:
     goto erro;
   }
 q20: // while
-  return tokenToStr[WHILE];
+  scan->token = tokenToStr[WHILE];
+  scan->lexema = "";
+  return scan;
 q21:
   if (digit == 'l')
   {
@@ -1149,7 +1303,9 @@ q24:
     goto erro;
   }
 q25: // else
-  return tokenToStr[ELSE];
+  scan->token = tokenToStr[ELSE];
+  scan->lexema = "";
+  return scan;
 q26:
   if (digit == 'a')
   {
@@ -1190,7 +1346,9 @@ q30:
     goto erro;
   }
 q31: // false
-  return tokenToStr[FALSE];
+  scan->token = tokenToStr[FALSE];
+  scan->lexema = "";
+  return scan;
 q32:
   if (digit == 'r')
   {
@@ -1224,7 +1382,9 @@ q35:
     goto erro;
   }
 q36: // true
-  return tokenToStr[TRUE];
+  scan->token = tokenToStr[TRUE];
+  scan->lexema = "";
+  return scan;
 q37:
   if (digit == 'o')
   {
@@ -1244,7 +1404,9 @@ q38:
     goto erro;
   }
 q39: // do
-  return tokenToStr[DO];
+  scan->token = tokenToStr[DO];
+  scan->lexema = "";
+  return scan;
 q40:
   if (digit == 'o')
   {
@@ -1278,7 +1440,9 @@ q43:
     goto erro;
   }
 q44: // bool
-  return tokenToStr[BOOL];
+  scan->token = tokenToStr[BOOL];
+  scan->lexema = "";
+  return scan;
 q45:
   if (digit == 'n')
   {
@@ -1304,7 +1468,9 @@ q46:
     goto erro;
   }
 q47: // if
-  return tokenToStr[IF];
+  scan->token = tokenToStr[IF];
+  scan->lexema = "";
+  return scan;
 q48:
   if (digit == 't')
   {
@@ -1324,7 +1490,9 @@ q49:
     goto erro;
   }
 q50: // int
-  return tokenToStr[INT];
+  scan->token = tokenToStr[INT];
+  scan->lexema = "";
+  return scan;
 q51:
   if (digit == 'e')
   {
@@ -1365,7 +1533,9 @@ q55:
     goto erro;
   }
 q56: // semic
-  return tokenToStr[SEMIC];
+  scan->token = tokenToStr[SEMIC];
+  scan->lexema = "";
+  return scan;
 q57:
   if (digit == ' ')
   {
@@ -1378,7 +1548,9 @@ q57:
     goto erro;
   }
 q58: // }
-  return tokenToStr[FECHA_CHAVES];
+  scan->token = tokenToStr[FECHA_CHAVES];
+  scan->lexema = "";
+  return scan;
 q59:
   if (digit == ' ')
   {
@@ -1391,7 +1563,9 @@ q59:
     goto erro;
   }
 q60: // {
-  return tokenToStr[ABRE_CHAVES];
+  scan->token = tokenToStr[ABRE_CHAVES];
+  scan->lexema = "";
+  return scan;
 q61:
   if (digit == ' ')
   {
@@ -1404,7 +1578,9 @@ q61:
     goto erro;
   }
 q62: // (
-  return tokenToStr[ABRE_PARENTESIS];
+  scan->token = tokenToStr[ABRE_PARENTESIS];
+  scan->lexema = "";
+  return scan;
 q63:
   if (digit == ' ')
   {
@@ -1417,7 +1593,9 @@ q63:
     goto erro;
   }
 q64: // )
-  return tokenToStr[FECHA_PARENTESIS];
+  scan->token = tokenToStr[FECHA_PARENTESIS];
+  scan->lexema = "";
+  return scan;
 q65:
   if (digit == ' ')
   {
@@ -1430,7 +1608,9 @@ q65:
     goto erro;
   }
 q66: // ,
-  return tokenToStr[VIRGULA];
+  scan->token = tokenToStr[VIRGULA];
+  scan->lexema = "";
+  return scan;
 q67:
   if (digit == ' ')
   {
@@ -1441,7 +1621,9 @@ q67:
     goto erro;
   }
 q68: // ;
-  return tokenToStr[PONTO_E_VIRGULA];
+  scan->token = tokenToStr[PONTO_E_VIRGULA];
+  scan->lexema = "";
+  return scan;
 q69:
   if (digit == ' ')
   {
@@ -1454,7 +1636,9 @@ q69:
     goto erro;
   }
 q70: // +
-  return tokenToStr[OPR_ADICAO];
+  scan->token = tokenToStr[OPR_ADICAO];
+  scan->lexema = "";
+  return scan;
 q71:
   if (digit == ' ')
   {
@@ -1467,7 +1651,9 @@ q71:
     goto erro;
   }
 q72: // -
-  return tokenToStr[OPR_SUBTRACAO];
+  scan->token = tokenToStr[OPR_SUBTRACAO];
+  scan->lexema = "";
+  return scan;
 q73:
   if (digit == ' ')
   {
@@ -1480,7 +1666,9 @@ q73:
     goto erro;
   }
 q74: // *
-  return tokenToStr[OPR_MULTIPLICACAO];
+  scan->token = tokenToStr[OPR_MULTIPLICACAO];
+  scan->lexema = "";
+  return scan;
 q75:
   if (digit == ' ')
   {
@@ -1499,7 +1687,9 @@ q75:
     goto erro;
   }
 q76: // /
-  return tokenToStr[OPR_DIVISAO];
+  scan->token = tokenToStr[OPR_DIVISAO];
+  scan->lexema = "";
+  return scan;
 q77:
   if (digit == ' ')
   {
@@ -1559,7 +1749,9 @@ q79:
     goto erro;
   }
 q80: // <
-  return tokenToStr[MENOR_QUE];
+  scan->token = tokenToStr[MENOR_QUE];
+  scan->lexema = "";
+  return scan;
 q81:
   if (digit == ' ')
   {
@@ -1572,7 +1764,9 @@ q81:
     goto erro;
   }
 q82: // <>
-  return tokenToStr[DIFERENCA];
+  scan->token = tokenToStr[DIFERENCA];
+  scan->lexema = "";
+  return scan;
 q83:
   if (digit == ' ')
   {
@@ -1585,7 +1779,9 @@ q83:
     goto erro;
   }
 q84: // <=
-  return tokenToStr[MENOR_OU_IGUAL_QUE];
+  scan->token = tokenToStr[MENOR_OU_IGUAL_QUE];
+  scan->lexema = "";
+  return scan;
 q85:
   if (digit == '=')
   {
@@ -1604,7 +1800,9 @@ q85:
     goto erro;
   }
 q86: // >
-  return tokenToStr[MAIOR_QUE];
+  scan->token = tokenToStr[MAIOR_QUE];
+  scan->lexema = "";
+  return scan;
 q87:
   if (digit == ' ')
   {
@@ -1617,7 +1815,9 @@ q87:
     goto erro;
   }
 q88: // >=
-  return tokenToStr[MAIOR_OU_IGUAL_QUE];
+  scan->token = tokenToStr[MAIOR_OU_IGUAL_QUE];
+  scan->lexema = "";
+  return scan;
 q89:
   if (digit == '=')
   {
@@ -1636,7 +1836,9 @@ q89:
     goto erro;
   }
 q90: // =
-  return tokenToStr[ATRIBUICAO];
+  scan->token = tokenToStr[ATRIBUICAO];
+  scan->lexema = "";
+  return scan;
 q91:
   if (digit == ' ')
   {
@@ -1649,7 +1851,9 @@ q91:
     goto erro;
   }
 q92: // ==
-  return tokenToStr[IGUALDADE];
+  scan->token = tokenToStr[IGUALDADE];
+  scan->lexema = "";
+  return scan;
 q93:
   if (digit == ' ')
   {
@@ -1659,6 +1863,7 @@ q93:
   }
   if (isalpha(digit))
   {
+    adicionarCaractere(&palavra, digit);
     (*counter)++;
     digit = lexema[*counter];
     goto q93;
@@ -1670,9 +1875,6 @@ q93:
 q94:
   if (digit == '*' || digit == ' ' || digit == '\t' || digit == '\r' || digit == '\n') // Precisa dos espaços extras?
   {
-    // TODO: Removi esse incremento e os comentários passaram. Avaliar depois
-    // (*counter)++;
-    // digit = lexema[*counter];
     goto q95;
   }
   if (
@@ -1779,7 +1981,9 @@ q97:
     goto erro;
   }
 q98: // Identificador
-  return tokenToStr[IDENTIFICADOR];
+  scan->token = tokenToStr[IDENTIFICADOR];
+  scan->lexema = palavra;
+  return scan;
 q99:
   if (isdigit(digit))
   {
@@ -1798,9 +2002,13 @@ q99:
     goto erro;
   }
 q100: // Digitos
-  return tokenToStr[NUM];
+  scan->token = tokenToStr[NUM];
+  scan->lexema = "";
+  return scan;
 q101: // Comentario
-  return tokenToStr[_COMENTARIO];
+  scan->token = tokenToStr[_COMENTARIO];
+  scan->lexema = "";
+  return scan;
 erro: // Erro léxico
   if (*counter > 20)
   {
@@ -1822,5 +2030,7 @@ erro: // Erro léxico
     erroSintatico[size] = '\0';
   }
 
-  return tokenToStr[ERRO_SINTATICO];
+  scan->token = tokenToStr[ERRO_SINTATICO];
+  scan->lexema = "";
+  return scan;
 }
