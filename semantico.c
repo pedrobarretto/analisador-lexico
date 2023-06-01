@@ -93,6 +93,7 @@ typedef struct IdentifierNode
   Token type;
   char *lexema;
   int isFunction;
+  char *value;
   struct IdentifierNode *next;
 } IdentifierNode;
 
@@ -312,12 +313,14 @@ int COMENTARIO(char *palavra, int *counter, char *erroSintatico, SymbolTable *sy
 // ATRIB -> IDENTIFICADOR = IDENTIFICADOR ; | IDENTIFICADOR = NUMERO ; | IDENTIFICADOR = IDENTIFICADOR + NUMERO ; | IDENTIFICADOR = NUMERO + IDENTIFICADOR ; | IDENTIFICADOR = true ; | IDENTIFICADOR = false ;
 int ATRIB(char *palavra, int *counter, char *erroSintatico, SymbolTable *symbolTable, int *blockCounter)
 {
+  // salvar lookahead->lexema em um aux
   searchIdentifier(symbolTable, lookahead->lexema);
   match(tokenToStr[IDENTIFICADOR], palavra, counter, erroSintatico, symbolTable, blockCounter);
   match(tokenToStr[ATRIBUICAO], palavra, counter, erroSintatico, symbolTable, blockCounter);
   // Primeiro operando
   if (lookahead->token == tokenToStr[NUM])
   {
+    // editIdentifier salvando value
     match(tokenToStr[NUM], palavra, counter, erroSintatico, symbolTable, blockCounter);
   }
   else if (lookahead->token == tokenToStr[IDENTIFICADOR])
@@ -595,6 +598,25 @@ SymbolTable *createSymbolTable()
 void createBlock(SymbolTable *symbolTable, int blockIdentifier)
 {
   Block *newBlock = (Block *)malloc(sizeof(Block));
+
+  Block *currentBlock = symbolTable->head;
+  Block *auxBlock = NULL;
+  while (currentBlock != NULL)
+  {
+    IdentifierNode *currentIdentifier = currentBlock->identifiers;
+    if (currentIdentifier == NULL)
+    {
+      auxBlock = currentBlock->next;
+      deleteBlock(symbolTable, currentBlock->blockIdentifier);
+      blockId--;
+    }
+    else
+    {
+      auxBlock = currentBlock->next;
+    }
+    currentBlock = auxBlock;
+  }
+
   // newBlock->blockIdentifier = blockIdentifier;
   newBlock->blockIdentifier = blockId;
   newBlock->identifiers = NULL;
