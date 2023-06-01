@@ -1,5 +1,5 @@
-void _umProc ( int _a ) { 
-    int  _a ; 
+void _umProc ( int _ab ) { 
+    int _a ; 
     _a = 1 ; 
     if ( _a < 1 ) { 
 	 _a = 12 ; 
@@ -21,6 +21,7 @@ semic _correto {
                       comentario */ 
 
     if ( _d ) { 
+        int _dentroDoIf ;    
 	_a = 20 ; 
 	_b = 10 * _c ; 
 	_c = _a / _b ; 
@@ -30,9 +31,11 @@ semic _correto {
 
     do { 
 	if ( _b > 10 ) { 
+        int _abc ; 
 	    _b = 2 ; 
            _a = _a - 1 ; 
 	} else { 
+        int _qwe ; 
 	    _a = _a - 1 ; 
 	} ; 
     } while ( _a > 1 ) ; 
